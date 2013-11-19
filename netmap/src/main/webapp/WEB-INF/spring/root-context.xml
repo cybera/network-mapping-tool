@@ -1,8 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-	
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+	    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+	    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+	    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+	    
+	">
+
 	<!-- Root Context: defines shared resources visible to all other web components -->
-		
-</beans>
+
+	<beans:bean id="transactionManager"
+		class="org.springframework.orm.jpa.JpaTransactionManager">
+		<beans:property name="entityManagerFactory" ref="entityManagerFactory" />
+	</beans:bean>
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+
+	<beans:bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<beans:property name="dataSource" ref="dataSource" />
+		<beans:property name="packagesToScan" value="ca.cybera.netmap.model" />
+		<beans:property name="jpaVendorAdapter">
+			<beans:bean
+				class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<beans:property name="showSql" value="false" />
+				<beans:property name="generateDdl" value="true" />
+				<beans:property name="databasePlatform"
+					value="org.hibernate.spatial.dialect.postgis.PostgisDialect" />
+			</beans:bean>
+		</beans:property>
+
+		<beans:property name="jpaProperties">
+			<beans:props>
+				<beans:prop key="hibernate.hbm2ddl.auto">update</beans:prop>
+				<beans:prop key="hibernate.generate_statistics">true</beans:prop>
+			</beans:props>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="poolProperties" class="org.apache.tomcat.jdbc.pool.PoolProperties">
+		<beans:property name="url"
+			value="jdbc:postgresql://localhost/netmap" />
+		<beans:property name="driverClassName" value="org.postgresql.Driver" />
+		<beans:property name="username" value="cybera" />
+		<beans:property name="password" value="cybera.123" />
+		<beans:property name="validationQuery" value="SELECT 1" />
+		<beans:property name="testOnBorrow" value="true" />
+		<beans:property name="jdbcInterceptors"
+			value="org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer" />
+		<beans:property name="maxActive" value="75" />
+		<beans:property name="maxIdle" value="5" />
+	</beans:bean>
+
+	<beans:bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource"
+		destroy-method="close">
+		<beans:property name="poolProperties" ref="poolProperties" />
+	</beans:bean>
+
+	<context:component-scan base-package="ca.cybera.netmap.service" />
+
+
+</beans:beans>
