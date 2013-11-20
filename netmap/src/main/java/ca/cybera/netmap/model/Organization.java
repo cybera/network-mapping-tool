@@ -1,5 +1,7 @@
 package ca.cybera.netmap.model;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -26,14 +28,24 @@ public class Organization {
 	private String UUID;
 
 	@ManyToOne
-	@JoinColumn(name = "type_uuid")
-	private OrganizationType type;
+	@JoinColumn(name = "org_type")
+	private OrganizationType organizationType;
+
+	@ManyToOne
+	@JoinColumn(name = "website_uuid")
+	private Website website;
 
 	@Column(name = "english_name")
 	private String englishName;
 
 	@Column(name = "french_name")
 	private String frenchName;
+
+	@Column(name = "campus")
+	private String campus;
+
+	@Column(name = "main_or_sub_campus")
+	private String mainOrSubCampus;
 
 	@Column(name = "address")
 	private String address;
@@ -50,12 +62,18 @@ public class Organization {
 	@Column(name = "phone")
 	private String phone;
 
+	@Column(name = "connected")
+	private Boolean connected;
+
 	@Column(name = "comments")
 	private String comments;
 
 	@Type(type = "org.hibernate.spatial.GeometryType")
 	@Column(name = "geom")
 	private Geometry geom;
+
+	@Column(name = "member_since")
+	private Date memberSince;
 
 	public String getUUID() {
 		return UUID;
@@ -65,12 +83,12 @@ public class Organization {
 		UUID = uUID;
 	}
 
-	public OrganizationType getType() {
-		return type;
+	public OrganizationType getOrganizationType() {
+		return organizationType;
 	}
 
-	public void setType(OrganizationType type) {
-		this.type = type;
+	public void setOrganizationType(OrganizationType organizationType) {
+		this.organizationType = organizationType;
 	}
 
 	public String getEnglishName() {
@@ -143,6 +161,38 @@ public class Organization {
 
 	public void setGeom(Geometry geom) {
 		this.geom = geom;
+	}
+
+	public String getCampus() {
+		return campus;
+	}
+
+	public void setCampus(String campus) {
+		this.campus = campus;
+	}
+
+	public String getMainOrSubCampus() {
+		return mainOrSubCampus;
+	}
+
+	public void setMainOrSubCampus(String mainOrSubCampus) {
+		this.mainOrSubCampus = mainOrSubCampus;
+	}
+
+	public Boolean getConnected() {
+		return connected;
+	}
+
+	public void setConnected(Boolean connected) {
+		this.connected = connected;
+	}
+
+	public Date getMemberSince() {
+		return memberSince;
+	}
+
+	public void setMemberSince(Date memberSince) {
+		this.memberSince = memberSince;
 	}
 
 }
