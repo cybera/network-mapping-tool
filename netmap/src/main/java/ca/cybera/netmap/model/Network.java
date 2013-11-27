@@ -15,11 +15,15 @@ public class Network {
 	@Column(name = "name")
 	private String name;
 
+	@Column(name = "colour", unique = true, nullable = false)
+	private String colour;
+
 	public Network() {
 	}
 
-	public Network(String name) {
+	public Network(String name, String colour) {
 		this.name = name;
+		this.colour = colour;
 	}
 
 	public String getName() {
@@ -28,6 +32,14 @@ public class Network {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getColour() {
+		return colour;
+	}
+
+	public void setColour(String colour) {
+		this.colour = colour;
 	}
 
 }
