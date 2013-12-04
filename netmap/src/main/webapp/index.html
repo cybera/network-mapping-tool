@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	  
+	  <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyDrCXoSYA0GKWtl6I8K2QZDAhe9ryNnQkE&sensor=false"></script>
+	  
+	  <script type='text/javascript' src='http://code.jquery.com/jquery-1.9.1.js'></script>
+	  <script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	  
+	  <script type="text/javascript" src="js/jquery.csv-0.71.js"></script>
+	  <script type="text/javascript" src="js/oms.min.js"></script>
+	  <script type="text/javascript" src="js/jquery.alerts.js"></script>
+	  <script type="text/javascript" src="js/jquery.jqGrid.src.js"></script>
+		<script type="text/javascript" src="js/filereader.js"></script>
+
+	  <script type="text/javascript" src="map.js"></script>
+	  
+	  <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
+	 <link rel="stylesheet" href="css/ui.jqgrid.css" type="text/css" />
+
+<script>
+
+
+
+
+//prevent console fail
+if (typeof console === "undefined" || typeof console.log === "undefined") {
+    console = {};
+    console.log = function() {};
+}
+
+function getCSV(url, callback) {
+	console.log("retrieve: "+url);
+    $.ajax({
+        url: url,
+        cache: false,
+        dataType: 'text',
+        processData: false,
+        type: 'GET',
+        success: function(response) {
+        	var parsed = $.csv.toObjects(response);
+        	if(callback)
+        		callback(parsed);
+        },
+        error: function(request, type, errorThrown) {
+        	alert(msg_comm_err);
+        }
+    });
+	
+}
+
+
+
+function geocodePlaces(places) {
+	if(places[0].latitude == undefined) {
+		var geocoder = new google.maps.Geocoder();
+		var completed = 0;
+		
+		var deferred = $.Deferred();
+		$.each(places, function(idx, place) {
+			var locref = place.Address+" "+place.City+" "+place.Province+"  "+place.Pcode;
+			setTimeout(function() {
+			geocoder.geocode({address: locref}, function(results, status) {
+				completed++;
+				console.log('geocode: ',locref+" -> ",status);
+				if(status == google.maps.GeocoderStatus.OK) {
+					console.log("results: ",results);
+					console.log("latitude: ",results[0].geometry.location.lat());
+					place.coords = {};
+					place.coords.latitude = results[0].geometry.location.lat();
+					place.coords.longitude = results[0].geometry.location.lng();
+				}
+				/*
+				else {
+					console.log("error geocoding: "+locref);
+				}
+				*/
+				console.log(completed+" -> "+places.length);
+				if(completed == places.length)
+					deferred.resolve(places);
+			});
+			}, idx*2000);
+		});
+		
+		return deferred.promise();
+		
+	}
+	
+	return "";
+	
+}
+
+function createLink(from, to, open) {
+	var f = indexedPlaces[from];
+	var t = indexedPlaces[to];
+
+	var type = Object.keys(indexedLinkTypes)[0];
+	
+	var link = {start: f.id, end: t.id, type: type};
+	links.push(link);
+	
+	var line = map.drawLink(link, f, t, indexedLinkTypes[type]);
+	if(open)
+		google.maps.event.trigger(line, 'click');
+}
+
+function createCSV(data) {
+	var str ='';
+	//quick & dirty create all values as quoted
+	$.each(data, function(idx, itm) {
+		var first = true;
+		$.each(itm, function(key, value) {
+			(first)? first=false : str+=",";
+			
+			str += '"'+value+'"';
+		})
+		str+="\n";
+	});
+
+	return str;
+}
+
+function outputTable() {
+	var model = $("#placeTable").jqGrid('getGridParam', 'colModel');
+	var data = $("#placeTable")[0].p.data.slice(0);
+
+	//remove internals 
+	$.each(data, function(idx, itm) {
+		delete itm.links;
+		delete itm.marker;
+	});
+	
+	var placecsv = createCSV(data);
+	var linkcsv = createCSV(links);
+	
+ 	var full = {
+ 			placeList: data,
+ 			linkList: links,
+ 			linkTypes: indexedLinkTypes,
+ 			mapStyle: map.style
+ 	};
+ 	console.log("full:",full);
+ 	
+ 	var jsonoutput = JSON.stringify(full, null, 2);
+ 	
+ 	$("#placeCSV").val(placecsv);
+ 	$("#linkCSV").val(linkcsv);
+ 	$("#jsonoutput").val(jsonoutput);
+ 	
+ 	$("#placecsvdownload").attr("href", "data:text/csv;charset=utf-8,"+escape(placecsv));
+ 	$("#linkcsvdownload").attr("href", "data:text/csv;charset=utf-8,"+escape(linkcsv));
+
+ 	$("#jsondownload").attr("href", "data:text/csv;charset=utf-8,"+escape(jsonoutput));
+ 	
+	$("#outputtabs").dialog("open");
+}
+
+
+function loadPlaces(places) {
+	indexedPlaces={};
+
+	var uniqueTypes = {};
+	$.each(places, function(idx, place) {
+		//place.name = place['Institutions - Eng Name'];
+	
+		if(place.latitude) {
+			place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag);
+		}
+		
+		indexedPlaces[place.id] = place;
+		uniqueTypes[place.Type]=undefined;
+	});
+
+	//testing out autocomplete in table with these
+	types = Object.keys(uniqueTypes);
+}
+
+function getFirstProperty(obj) {
+	return obj[Object.keys(obj)[0]];
+}
+
+function handleDrag(place) {
+	$("#placeTable").jqGrid('setCell', place.id, 'latitude', place.latitude);
+	$("#placeTable").jqGrid('setCell', place.id, 'longitude', place.longitude);
+}
+
+function handleSelectPlace(id) {
+	$("#placeTable").jqGrid('setSelection', id);	
+}
+
+function showLinks() {
+	map.clearLines();
+	
+	$.each(links, function(idx, link) {
+		var from = indexedPlaces[link.start];
+		var to = indexedPlaces[link.end];
+		console.log("call draw link...");
+		var line = map.drawLink(link, from, to, indexedLinkTypes[link.type]);
+	});
+}
+
+function doresize() {
+	var h = $(window).height();
+	
+	if($("#bottom").is(":visible")) {
+		var bottomh = $("#bottom").height();
+		var toolbarh = $("#toolbar").height();
+		h = $(window).height()-bottomh;
+
+		$("#placeTable").setGridWidth($(window).width());
+		$("#placeTable").setGridHeight(bottomh-toolbarh);
+	}
+	$("#map_canvas").height(h);
+	$("#map3d").height(h);
+}
+
+$(document).ready(function() {
+	editMode = false;
+	
+	if(querystring("mode") == "editMode")
+		editMode = true;
+	
+	
+	console.log("editmode: ", editMode);
+	var locations;
+	
+	//hardcoded links for now.
+	
+	indexedLinkTypes = {} 
+
+	
+	$("#fileinput").hide().fileReaderJS({
+			on: {
+				load: function(e, file) {
+					console.log("****************************** FILE: ", file);
+					console.log("e:",e);
+					
+                    var fileReader = new FileReader();
+                    fileReader.onloadend = function(e) {
+						try {
+							showData(JSON.parse(this.result));
+	                    } catch(e) {
+	        				alert("Unable to parse file: "+e);
+	        			}
+                    };
+                    console.log("call readAs Text...");
+                    fileReader.readAsText(file);
+				},
+				error: function(e, file) {
+	            },
+				groupstart: function(group) {
+				},
+				groupend: function(group) {
+				}
+			}
+	});
+
+	//setup map
+	map = new Map();
+
+	
+	$(document).keyup(function(e) {
+		//pass escape thru to allow map to stop edit operations
+		  if (e.keyCode == 27) { 
+			  map.notifyEscape();
+		  }
+	});	
+
+	
+		
+			//links = [{start: 0, end: 37, type:'10G'},
+	//	         {start: 0, end: 5, type:'A'}];
+		
+		//resize components with window/split pane change
+		$(window).bind('resize', function() {
+			doresize();
+		}).trigger('resize');
+		
+		$("#bottom").resizable({
+			handles: "n"		
+		}).resize(function(event) {
+			doresize();	
+			return false;
+		});
+		
+		//toolbar
+		$("#openButton").click(function() {
+			$("#fileinput").click();
+			return false;
+		});
+
+		
+ 		$("#exportButton").click(function() {
+ 			outputTable();
+ 		});
+
+ 		$("#linkTypeButton").click(function() {
+ 			$("#linkTypes").html(JSON.stringify(indexedLinkTypes, null, 2));
+ 	 		$("#linkTypeDialog").dialog("open");
+ 		});
+ 		
+ 		$("#mapStyleButton").click(function() {
+ 			$("#mapstyle").html(JSON.stringify(map.mapStyles, null, 2));
+ 	 		$("#mapStyleDialog").dialog("open");
+ 		});
+ 		
+ 		$("#mapStyleDialog").dialog({
+ 			autoOpen: false,
+ 			modal: true,
+ 			width: 600,
+ 			 buttons: {
+ 		        "Update Style": function() {
+ 		        	try {
+ 						var style = JSON.parse($("#mapstyle").val());
+ 						console.log(style);
+ 						map.map.setOptions({styles: style});
+ 					} catch(e) {
+ 						alert("Unable to update style: JSON failed to parse");
+ 					}
+ 				    $( this ).dialog( "close" );
+ 		        },
+ 		        Cancel: function() {
+ 		          $( this ).dialog( "close" );
+ 		        }
+ 		      }
+ 		});
+ 		$("#linkTypeDialog").dialog({
+ 			autoOpen: false,
+ 			modal: true,
+ 			width: 600,
+ 			 buttons: {
+ 		        "Update": function() {
+ 		        	try {
+ 						indexedLinkTypes = JSON.parse($("#linkTypes").val());
+ 						showLinks();
+ 					} catch(e) {
+ 						alert("Unable to update link types: JSON failed to parse");
+ 					}
+ 				    $( this ).dialog( "close" );
+ 		        },
+ 		        Cancel: function() {
+ 		          $( this ).dialog( "close" );
+ 		        }
+ 		      }
+ 		});
+ 		
+ 		
+		$("#addButton").click(function() {
+			addRow();
+		});
+		$("#deleteButton").click(function() {
+			var row = $("#placeTable").jqGrid("getGridParam", "selrow");
+			console.log("row: ",row);
+			deleteRow(row);
+		});
+		
+		//setup export dialog
+		$("#placecsvdownload").button();
+		$("#linkcsvdownload").button();
+		$("#jsondownload").button();
+	 	
+		$("#outputtabs textarea").focus(function () {
+			this.select();
+	        this.onmouseup = function() {
+	            this.onmouseup = null;
+	            return false;
+	        };
+		});
+	 	var tabs = $("#outputtabs").tabs();
+	
+		tabs.dialog({
+			width: 'auto',
+			autoOpen: false
+		});
+	
+		
+		//TODO: will work below into file open
+		/*
+		//used to parse and geocode the locations from a csv
+		getCSV("institutions.csv", function(places) {
+			var geocodePlacesComplete = geocodePlaces(places);
+	
+			console.log("got promise:",geocodePlacesComplete);
+			
+			$.when(geocodePlacesComplete).then(function(results) {
+				console.log("geocoding complete...");
+				console.log(results);
+				console.log(JSON.stringify(results));
+				
+				loadPlaces(results);
+			});
+	
+		});
+		*/
+	
+	if(!editMode) {
+		$("#bottom").hide();
+		doresize();
+	}
+
+	var load = querystring("load");
+	if(load) {
+		$.getJSON(load, function(results) {
+			showData(results);
+		});
+	}
+	
+	$.getJSON("institutions.json", function(results) {
+		showData(results);
+	});
+		
+		
+})
+
+
+function showData(results) {
+	map.clearOverlays();
+	
+	console.log(results);
+	indexedLinkTypes = results.linkTypes;
+
+	map.setStyle(results.mapStyle)
+	
+	links = results.linkList;
+	loadPlaces(results.placeList);
+	places = results.placeList;
+	showLinks();
+	setupTable();
+}
+
+function querystring(key) {
+   var re=new RegExp('(?:\\?|&)'+key+'=(.*?)(?=&|$)','gi');
+   var r=[], m;
+   while ((m=re.exec(document.location.search)) != null) r.push(m[1]);
+   return r;
+}
+
+
+function setupTable() {
+	if(!editMode)
+		return;
+	
+	var placeObj = getFirstProperty(indexedPlaces);
+
+	var colNames = [];
+	var colModel = [];
+
+	//setup table model based on properties of object
+	$.each(placeObj, function(key, val) {
+		console.log("key:",key,"val:",val);
+		
+		//Internal types we don't want in the table
+		if(key == 'marker' || key == 'links')
+			return true;
+		
+		var name = key;
+		console.log('name:',name);
+		colNames.push(key);
+		
+		var opts = {
+				name: name,
+				editable: true,
+				sortable: true,
+				sorttype: 'text'
+			};
+
+		//TODO: testing autocompletes on table edit, this could
+		//encompass others, checkboxes etc, will depend on how static incoming data is
+		if(key == 'Type') {
+			opts.edittype = 'custom';
+			opts.editoptions = {
+				custom_element: getAutocomplete,
+				custom_value: setValue
+			};
+		}
+		
+		colModel.push(opts);
+	});
+	
+	
+	var w = $(window).width();
+	var lastsel;
+	tableOptions = {
+			datatype: "local",
+			sortable: true,
+			colNames:colNames,
+			colModel:colModel,
+			shrinkToFit: true,
+			height: 175,
+			width: w,
+			rowNum:places.length,
+		   	rowList:[10,20,30],
+		   	scroll: true,
+		   	scrollrows: true,
+//		   	pager: '#pagernav',
+			onSelectRow: function(id, status, event){
+				//check if edit bailed
+				if(id && id!==lastsel){
+					$("#placeTable").jqGrid('restoreRow',lastsel);
+				}
+				
+				//show corresponding infowindow on map
+				if(event) {
+					//only call if user actually click (otherwise recursive loop)
+					if(indexedPlaces[id].marker) {
+						map.zoomTo(indexedPlaces[id].marker);
+					}
+				}
+				
+			},
+			ondblClickRow: function (id, ri, ci, e) {
+				//edit on double click
+
+				lastsel=id;
+			    $("#placeTable").jqGrid('editRow', id, true, 'clientArray');
+			}
+		};
+	
+	
+	var table = $("#placeTable").jqGrid(tableOptions).navGrid("#pagernav",{edit:false,add:false,del:false});
+	
+	//set data reference directly on table so that we are linked for updates
+	table[0].p.data = places;
+	table.trigger('reloadGrid');
+}
+
+function deleteRow(id) {
+	$.confirm("Do you want to delete "+indexedPlaces[id].name+"?", {
+		title: 'Confirm Delete',
+		buttons: {
+			"Yes": function() {
+				$(this).dialog("close");
+				map.removeMarker(indexedPlaces[id].marker);
+				
+				$("#placeTable").jqGrid('delRowData', id);
+				delete indexedPlaces[id];
+			},
+			"No": function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+}
+
+function addRow() {
+	var center = map.map.getCenter();
+	
+	var id = places.length;
+	
+	
+	var place = {
+			id: id,
+			latitude: center.lat(),
+			longitude: center.lng()
+		}; 
+	var table = $("#placeTable").jqGrid('addRowData', id, place, "first");
+
+	//keep index up to date, note jqgrid does an extend, so we need to get the reference from our linked array.
+	place = places[places.length-1];
+	indexedPlaces[id] = place;
+	
+	place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, true);
+
+    $("#placeTable").jqGrid('editRow', id, true, 'clientArray');
+}
+
+function getAutocomplete(value, options) {
+	console.log("in get autocomplete...", types);
+	  var e = $("<input>");
+	  e.autocomplete({
+		  source: types
+	  });
+	  e.val(value);
+	  return e;
+}
+
+
+function setValue(elem, operation, value) {
+    if(operation === 'get') {
+       return $(elem).val();
+    } else if(operation === 'set') {
+       $(elem).val(value);
+    }
+}
+
+
+</script>
+
+
+<style>
+
+body, html {
+height:100%;
+width:100%;
+margin:0px;
+padding:0px;
+}
+
+.btn {
+padding-top:2px;
+padding-right:5px;
+}
+
+.ui-button .ui-icon.draw-icon {
+    background-image: url('images/draw.png') !important;
+    width: 26px;
+    height: 26px; 
+    top: 14px;
+}
+
+.ui-button-text-icon-primary .ui-button-text {
+    padding: 0.4em 1em .4em 2.3em;
+}
+
+</style>
+</head>
+  
+<body>
+	<div id="map_canvas" style="width:100%; height:100px;"></div>
+	<div id="bottom" style="border-top: 3px solid lightgrey; position: absolute; left:0px; bottom:0px; width:100%; height:225px;'">
+	
+		<div id="toolbar" style="margin-left:10px; height:25px; width:100%">
+			<img title="Open Map" id="openButton" class="btn" src='images/open.png'>
+			<img title="Add Place" id="addButton" class="btn" src='images/add.png'>
+			<img title="Delete Place" id="deleteButton" class="btn" src='images/delete.png'>
+			<img title="Save" id="exportButton" class="btn" src='images/save.png'>
+			<img title="Edit Link Types" id="linkTypeButton" class="btn" src='images/links.png'>
+			<img title="Edit Map Styles" id="mapStyleButton" class="btn" src='images/map.png'>
+			<input id="fileinput" type="file"/>
+		</div>
+		<table id="placeTable"></table>
+	 </div>
+	 
+	 <div id="outputtabs">
+	 	<ul>
+			<li><a href="#jsontab">JSON</a></li>
+			<li><a href="#csvtab">CSV</a></li>
+	 	</ul>
+	 	<div id="csvtab">
+	 		<div>Places</div>
+	 		<textarea id="placeCSV" style="width:600px; height:300px;"></textarea>
+	 		<div>Links</div>
+	 		<textarea id="linkCSV" style="width:600px; height:300px;"></textarea>
+	 		<br/>
+	 		<a id="placecsvdownload" download="place.csv">Download place.csv</a>
+	 		<a id="linkcsvdownload" download="link.csv">Download link.csv</a>
+		 	</div>
+	 	<div id="jsontab">
+	 		<textarea id="jsonoutput" style="width:600px; height:600px;"></textarea>
+	 		<br/>
+	 		<a id="jsondownload" download="netmap.json">Save</a>
+	 	</div>
+	 </div>
+	 
+	 <div id="mapStyleDialog" title="Edit Map Style">
+	 	<textarea id="mapstyle" style="width:500px; height: 500px;"></textarea>
+	 	<div>Build custom map styles at <a target="_new" href="http://gmaps-samples-v3.googlecode.com/svn/trunk/styledmaps/wizard/index.html">http://gmaps-samples-v3.googlecode.com/svn/trunk/styledmaps/wizard/index.html</a></div>
+	 </div>
+	 
+	  <div id="linkTypeDialog" title="Edit Link Types">
+	 	<textarea id="linkTypes" style="width:500px; height: 500px;"></textarea>
+	 </div>
+<!-- 
+	<div style="padding-left:20px; width:600px; overflow:hidden;">
+		Styles:<br/>
+		<textarea style="width:500px; height:500px;" id="mapstyle"></textarea>
+		<br/>
+		<br/>
+		
+		
+		<p>
+		Links:<br/>
+		<div id="links"></div>
+	</div>
+ -->	 	
+	
+</body>
+
+</html>
+  
