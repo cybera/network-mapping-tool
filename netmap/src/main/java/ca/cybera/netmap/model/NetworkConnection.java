@@ -42,11 +42,11 @@ public class NetworkConnection {
 	private List<Website> websites;
 
 	@ManyToOne
-	@JoinColumn(name = "start")
+	@JoinColumn(name = "org_start")
 	private Organization start;
 
 	@ManyToOne
-	@JoinColumn(name = "end")
+	@JoinColumn(name = "org_end")
 	private Organization end;
 
 	@Type(type = "org.hibernate.spatial.GeometryType")
