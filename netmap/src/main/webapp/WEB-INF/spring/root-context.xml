@@ -64,6 +64,7 @@
 		<beans:property name="poolProperties" ref="poolProperties" />
 	</beans:bean>
 
+	<context:component-scan base-package="ca.cybera.netmap.assembler" />
 	<context:component-scan base-package="ca.cybera.netmap.service" />
 
 

@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import ca.cybera.netmap.assembler.OrganizationAssembler;
+import ca.cybera.netmap.dto.OrganizationDTO;
 import ca.cybera.netmap.model.Organization;
 import ca.cybera.netmap.model.OrganizationType;
 import ca.cybera.netmap.service.OrganizationService;
@@ -20,13 +22,15 @@ import ca.cybera.netmap.service.OrganizationService;
 @RequestMapping("/organization")
 public class OrganizationController {
 
+	@Inject private OrganizationAssembler assembler;
+	
 	@Inject private OrganizationService service;
 
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	public @ResponseBody
-	Organization post(@RequestBody Organization organization) throws Exception {
+	OrganizationDTO post(@RequestBody OrganizationDTO organization) throws Exception {
 
-		return service.save(organization);
+		return assembler.getDTO(service.save(assembler.assemble(organization)));
 
 	}
 

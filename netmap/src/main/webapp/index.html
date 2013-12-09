@@ -7,6 +7,10 @@
 	  
 	  <script type='text/javascript' src='http://code.jquery.com/jquery-1.9.1.js'></script>
 	  <script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+
+		<script type="text/javascript" src="js/jquery.toastmessage.js"></script>
+	<link type="text/css" href="css/jquery.toastmessage.css" rel="stylesheet" />
+
 	  
 	  <script type="text/javascript" src="js/jquery.csv-0.71.js"></script>
 	  <script type="text/javascript" src="js/oms.min.js"></script>
@@ -407,12 +411,86 @@ $(document).ready(function() {
 	}
 	
 	$.getJSON("institutions.json", function(results) {
-		showData(results);
+		//showData(results);
+		
+		$.each(results.placeList, function(idx, place) {
+			createOrganization({
+				address: place.Address,
+				city: place.City,
+				province: place.Province,
+				postalCode: place.Pcode,
+				englishName: place['Institutions - Eng Name'],
+				frenchName: place['Institutions - Fr Name'],
+				campus: place.Campus,
+				mainOrSubCampus: place['Main/Sub Campus'],
+				connected: place.Connected,
+				comments: place.Comments,
+				geom: { "type": "Point", "coordinates": [place.longitude, place.latitude] },
+				phone: place.Phone
+				
+			});
+		});
+		
 	});
 		
 		
 })
 
+
+function createOrganization(org, callback) {
+	$.ajax({
+        url: 'ns/organization',
+        dataType: 'json', 
+        data: JSON.stringify(org),
+        cache: false,
+		headers: {
+		    'Accept' : 'application/json',
+		    'Content-Type' : 'application/json'
+			},
+        processData: false,
+        type: 'POST',
+        success: function(response) {
+        	console.log(response);
+        	if(callback)
+        		callback(response);
+        },
+        error: function(request, type, errorThrown) {
+        	handleError(request);
+        }
+    });
+	
+}
+function showToast(msg, sticky) {
+    $().toastmessage('showToast', {
+        text     : msg,
+        position: 'middle-center',
+        sticky   : sticky,
+        type     : 'notice'
+    });
+}
+
+function handleError(request) {
+	showToast(getError(request));
+}
+
+function getError(request) {
+	var message = "Error Occurred!";
+	
+	if (request.status) message += '  Error Code: [' + request.status + ']';
+	if (request.statusText) message += '  Error Message: [' + request.statusText + ']';
+	
+	if (request.responseText) {
+		var text = request.responseText;
+		try {
+			text = JSON.parse(request.responseText).message;
+		} catch(e) {}
+		if (text && text.length > 0) {
+			message += '  Response Text: ' + text;
+		}
+	}
+
+	return message;
+}
 
 function showData(results) {
 	map.clearOverlays();
