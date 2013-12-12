@@ -8,8 +8,8 @@ import ca.cybera.netmap.model.Website;
 public class OrganizationDTO {
 	private String UUID;
 	private OrganizationType organizationType;
-	private Website website;
-	private String englishName;
+	private String website;
+	private String name;
 	private String frenchName;
 	private String campus;
 	private String mainOrSubCampus;
@@ -35,17 +35,18 @@ public class OrganizationDTO {
 	public void setOrganizationType(OrganizationType organizationType) {
 		this.organizationType = organizationType;
 	}
-	public Website getWebsite() {
+	public String getWebsite() {
 		return website;
 	}
-	public void setWebsite(Website website) {
+	public void setWebsite(String website) {
 		this.website = website;
 	}
-	public String getEnglishName() {
-		return englishName;
+
+	public String getName() {
+		return name;
 	}
-	public void setEnglishName(String englishName) {
-		this.englishName = englishName;
+	public void setName(String name) {
+		this.name = name;
 	}
 	public String getFrenchName() {
 		return frenchName;

@@ -278,8 +278,8 @@ Map.prototype.clearMarkers = function() {
 	});
 }
 
-Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCallback, bounce) {
-	var ll = new google.maps.LatLng(place.latitude, place.longitude);
+Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCallback, dragEndCallback, bounce) {
+	var ll = new google.maps.LatLng(place.geom.coordinates[1], place.geom.coordinates[0]);
 
 	var image = new google.maps.MarkerImage('http://maps.google.com/mapfiles/kml/pal4/icon57.png',
 		      new google.maps.Size(32, 32),
@@ -307,10 +307,12 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 	
 	console.log("MARDER: ",marker);
 	
-	marker.placename = place.id;
+	marker.placename = place.uuid;
 	marker.linkCallback = linkCallback;
 	marker.selectCallback = selectCallback;
 	marker.dragCallback = dragCallback;
+	marker.dragEndCallback = dragEndCallback;
+	
 	var me = this;
 	this.oms.addMarker(marker); 
 
@@ -333,9 +335,7 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
    	 	
    	 	var newpos = this.getPosition();
    	 	
-   	 	place.latitude = newpos.lat();
-   	 	place.longitude = newpos.lng();
-   	 	
+   	 	place.geom.coordinates = [newpos.lng(), newpos.lat()];
    	 	
    	 	if(marker.dragCallback)
    	 		marker.dragCallback(place);
@@ -348,6 +348,15 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
    	 	
     });
 
+    google.maps.event.addListener(marker, 'dragend', function (e) {
+    	console.log("dragend...",marker);
+    	if(marker.dragEndCallback) {
+        	var place = indexedPlaces[marker.placename];
+    		marker.dragEndCallback(place);
+    	}
+    });
+
+    
     return marker;
 }
 

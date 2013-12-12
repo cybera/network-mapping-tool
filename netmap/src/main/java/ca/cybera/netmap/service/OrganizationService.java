@@ -11,7 +11,7 @@ public interface OrganizationService {
 
 	public Organization get(String uuid);
 	
-	public void delete(Organization organization);
+	public void delete(String uuid);
 
 	public List<Organization> get();
 
@@ -22,5 +22,7 @@ public interface OrganizationService {
 	public List<OrganizationType> getTypes();
 	
 	public OrganizationType getType(String type);
+
+
 	
 }

@@ -16,7 +16,15 @@
 	  <script type="text/javascript" src="js/oms.min.js"></script>
 	  <script type="text/javascript" src="js/jquery.alerts.js"></script>
 	  <script type="text/javascript" src="js/jquery.jqGrid.src.js"></script>
-		<script type="text/javascript" src="js/filereader.js"></script>
+	  <script type="text/javascript" src="js/jquery.contextMenu.js"></script>
+	  <link rel="stylesheet" href="css/jquery.contextMenu.css" type="text/css" />
+	  
+
+
+
+	  		<script type="text/javascript" src="js/filereader.js"></script>
+		<script type="text/javascript" src="js/uuid.js"></script>
+		
 
 	  <script type="text/javascript" src="map.js"></script>
 	  
@@ -164,16 +172,27 @@ function outputTable() {
 function loadPlaces(places) {
 	indexedPlaces={};
 
-	var uniqueTypes = {};
+	
+	uniqueTypes = {};
+
+	
+	uniqueTypes['testtype'] = {type: 'testtype', colour: 'black'};
+	uniqueTypes['type2'] = {type: 'type2', colour: 'red'};
+	
 	$.each(places, function(idx, place) {
 		//place.name = place['Institutions - Eng Name'];
 	
-		if(place.latitude) {
-			place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag);
+		if(place.geom.coordinates[0]) {
+			place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, handleDragEnd);
 		}
 		
-		indexedPlaces[place.id] = place;
-		uniqueTypes[place.Type]=undefined;
+		if(place.organizationType) {
+			place.organizationType.toString = function() {
+				return this.type;
+			}
+		}
+		
+		indexedPlaces[place.uuid] = place;
 	});
 
 	//testing out autocomplete in table with these
@@ -185,9 +204,18 @@ function getFirstProperty(obj) {
 }
 
 function handleDrag(place) {
-	$("#placeTable").jqGrid('setCell', place.id, 'latitude', place.latitude);
-	$("#placeTable").jqGrid('setCell', place.id, 'longitude', place.longitude);
+	//$("#placeTable").jqGrid('setCell', place.uuid, 'latitude', place.latitude);
+	//$("#placeTable").jqGrid('setCell', place.uuid, 'longitude', place.longitude);
 }
+
+function handleDragEnd(place) {
+	var record = $.extend({}, place);
+	delete record.marker;
+	
+	console.log("location update, merge it:",record);
+	mergeOrganization(record);
+}
+
 
 function handleSelectPlace(id) {
 	$("#placeTable").jqGrid('setSelection', id);	
@@ -403,41 +431,45 @@ $(document).ready(function() {
 		doresize();
 	}
 
-	var load = querystring("load");
-	if(load) {
-		$.getJSON(load, function(results) {
-			showData(results);
-		});
-	}
-	
-	$.getJSON("institutions.json", function(results) {
-		//showData(results);
 		
-		$.each(results.placeList, function(idx, place) {
-			createOrganization({
-				address: place.Address,
-				city: place.City,
-				province: place.Province,
-				postalCode: place.Pcode,
-				englishName: place['Institutions - Eng Name'],
-				frenchName: place['Institutions - Fr Name'],
-				campus: place.Campus,
-				mainOrSubCampus: place['Main/Sub Campus'],
-				connected: place.Connected,
-				comments: place.Comments,
-				geom: { "type": "Point", "coordinates": [place.longitude, place.latitude] },
-				phone: place.Phone
-				
-			});
-		});
-		
+	$.getJSON('ns/organization', function(result) {
+		console.log(result);
+		places = result;
+		loadPlaces(result);
+		setupTable();
+
 	});
+
 		
 		
 })
 
 
-function createOrganization(org, callback) {
+
+function deleteOrganization(id, callback) {
+	$.ajax({
+        url: 'ns/organization/'+id,
+        cache: false,
+		headers: {
+		    'Accept' : 'application/json',
+		    'Content-Type' : 'application/json'
+			},
+        processData: false,
+        type: 'DELETE',
+        success: function(response) {
+        	console.log(response);
+        	if(callback)
+        		callback(response);
+        },
+        error: function(request, type, errorThrown) {
+        	console.log("in error...");
+        	handleError(request);
+        }
+    });
+	
+}
+
+function mergeOrganization(org, callback) {
 	$.ajax({
         url: 'ns/organization',
         dataType: 'json', 
@@ -460,17 +492,20 @@ function createOrganization(org, callback) {
     });
 	
 }
-function showToast(msg, sticky) {
+function showToast(msg, sticky, type) {
+	if(type == undefined)
+		type='notice';
+	
     $().toastmessage('showToast', {
         text     : msg,
         position: 'middle-center',
         sticky   : sticky,
-        type     : 'notice'
+        type     : type
     });
 }
 
 function handleError(request) {
-	showToast(getError(request));
+	showToast(getError(request), false, 'error');
 }
 
 function getError(request) {
@@ -514,6 +549,9 @@ function querystring(key) {
    return r;
 }
 
+var myfunc = function() {
+	console.log('here');
+}
 
 function setupTable() {
 	if(!editMode)
@@ -543,15 +581,27 @@ function setupTable() {
 				sorttype: 'text'
 			};
 
-		//TODO: testing autocompletes on table edit, this could
-		//encompass others, checkboxes etc, will depend on how static incoming data is
-		if(key == 'Type') {
-			opts.edittype = 'custom';
+		if(key == "uuid") {
+			opts.key = true;
+		}
+		
+		if(key == 'organizationType') {
+			opts.edittype = 'select';
 			opts.editoptions = {
-				custom_element: getAutocomplete,
-				custom_value: setValue
+				value: "testype:testtype; type2:type2"
 			};
 		}
+		else if(key == 'connected') {
+			opts.edittype = 'checkbox';
+			opts.editoptions = {
+				value: "true:false"
+			};
+		}
+		else if(key == 'geom') {
+			opts.hidden = true;
+		}
+		
+		
 		
 		colModel.push(opts);
 	});
@@ -591,8 +641,11 @@ function setupTable() {
 				//edit on double click
 
 				lastsel=id;
-			    $("#placeTable").jqGrid('editRow', id, true, 'clientArray');
+	//		    $("#placeTable").jqGrid('editRow', id, true, 'clientArray');
+				editRow(id);
+			    
 			}
+			
 		};
 	
 	
@@ -601,16 +654,51 @@ function setupTable() {
 	//set data reference directly on table so that we are linked for updates
 	table[0].p.data = places;
 	table.trigger('reloadGrid');
+	
+	$.contextMenu({
+		selector: ".ui-jqgrid tr",
+		build: function($trigger, e) {
+			console.log(e);
+			
+			console.log('^^^^^^^^^^^^^^^^^^^^^^^^^ target:',$(e.target));
+			
+	     	//var id = $(e.target).parent('th').attr('id');
+			var id = $trigger.attr('id');
+			
+			var items = {'edit': {name : "Edit"}};
+			var sel = $("#placeTable").jqGrid("getGridParam", "selrow");
+
+			var address = indexedPlaces[sel].postalCode; 
+			if(address) {
+				items['geocode'] = {name: "Geocode Postal Code."};
+			}
+			
+			
+			return {
+				callback: function(key, options) {
+					if(key == "edit")
+						editRow(sel);
+					else if(key == "geocode")
+						console.log("geocode" + address);
+				},
+				items: items	
+			};
+		}
+	});
+	
 }
+
 
 function deleteRow(id) {
 	$.confirm("Do you want to delete "+indexedPlaces[id].name+"?", {
 		title: 'Confirm Delete',
 		buttons: {
 			"Yes": function() {
+				deleteOrganization(id);
+				
+				
 				$(this).dialog("close");
 				map.removeMarker(indexedPlaces[id].marker);
-				
 				$("#placeTable").jqGrid('delRowData', id);
 				delete indexedPlaces[id];
 			},
@@ -621,26 +709,53 @@ function deleteRow(id) {
 	});
 }
 
+function editRow(id) {
+	$("#placeTable").jqGrid('editRow', id, {
+    	url: 'clientArray',
+    	keys: true,
+    	aftersavefunc: function() {
+    		//update back to objects
+			var pos = indexedPlaces[id].marker.getPosition();
+			indexedPlaces[id].geom = {type: "Point", coordinates: [pos.lng(), pos.lat()]};
+			indexedPlaces[id].organizationType = uniqueTypes[indexedPlaces[id].organizationType];
+    		
+    		var record = $.extend({},indexedPlaces[id]);
+    		
+//			record.geom = {type: "Point", coordinates: [pos.lng(), pos.lat()]};
+//			record.organizationType = uniqueTypes[record.organizationType];
+			delete record.marker;
+			delete record.links;
+			delete record.latitude;
+			delete record.longitude;
+			
+			mergeOrganization(record);
+			console.log("should save: ",record);
+
+			
+    	}
+    });
+}
+
 function addRow() {
 	var center = map.map.getCenter();
 	
-	var id = places.length;
-	
-	
-	var place = {
-			id: id,
-			latitude: center.lat(),
-			longitude: center.lng()
-		}; 
-	var table = $("#placeTable").jqGrid('addRowData', id, place, "first");
+	mergeOrganization({
+		geom: {type: 'Point', coordinates: [center.lng(), center.lat()]}
+	}, function(place) {
+		var table = $("#placeTable").jqGrid('addRowData', place.uuid, place, "first");
 
-	//keep index up to date, note jqgrid does an extend, so we need to get the reference from our linked array.
-	place = places[places.length-1];
-	indexedPlaces[id] = place;
-	
-	place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, true);
+		
+		mergeOrganization(place);
+		
+		//keep index up to date, note jqgrid does an extend, so we need to get the reference from our linked array.
+		place = places[places.length-1];
+		indexedPlaces[id] = place;
+		
+		place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, handleDragEnd, true);
 
-    $("#placeTable").jqGrid('editRow', id, true, 'clientArray');
+	    $("#placeTable").jqGrid('editRow', id, true, 'clientArray');
+	});
+	
 }
 
 function getAutocomplete(value, options) {
@@ -739,6 +854,8 @@ padding-right:5px;
 	  <div id="linkTypeDialog" title="Edit Link Types">
 	 	<textarea id="linkTypes" style="width:500px; height: 500px;"></textarea>
 	 </div>
+	 
+	 	 
 <!-- 
 	<div style="padding-left:20px; width:600px; overflow:hidden;">
 		Styles:<br/>

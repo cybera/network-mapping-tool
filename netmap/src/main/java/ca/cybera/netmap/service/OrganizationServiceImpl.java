@@ -30,16 +30,14 @@ public class OrganizationServiceImpl implements OrganizationService {
 
 	@Override
 	public Organization save(Organization organization) {
-
+		
 		return entityManager.merge(organization);
 
 	}
 
 	@Override
-	public void delete(Organization organization) {
-
-		entityManager.remove(organization);
-
+	public void delete(String uuid){
+		entityManager.remove(get(uuid));
 	}
 
 	@Override

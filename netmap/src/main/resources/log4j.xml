@@ -12,7 +12,11 @@
 	
 	<!-- Application Loggers -->
 	<logger name="ca.cybera.netmap">
-		<level value="info" />
+		<level value="debug" />
+	</logger>
+
+	<logger name="org.hibernate">
+		<level value="debug" />
 	</logger>
 
 	 

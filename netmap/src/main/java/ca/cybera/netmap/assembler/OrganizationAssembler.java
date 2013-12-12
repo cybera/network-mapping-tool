@@ -1,11 +1,15 @@
 package ca.cybera.netmap.assembler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
 
 import ca.cybera.netmap.dto.OrganizationDTO;
 import ca.cybera.netmap.model.Organization;
+import ca.cybera.netmap.model.OrganizationType;
 
 @Component
 public class OrganizationAssembler {
@@ -24,7 +28,7 @@ public class OrganizationAssembler {
 		org.setMainOrSubCampus(dto.getMainOrSubCampus());
 		org.setComments(dto.getComments());
 		org.setConnected(dto.getConnected());
-		org.setEnglishName(dto.getEnglishName());
+		org.setName(dto.getName());
 		org.setFrenchName(dto.getFrenchName());
 		org.setGeom(geomAssembler.assemble(dto.getGeom()));
 		org.setMemberSince(dto.getMemberSince());
@@ -46,7 +50,7 @@ public class OrganizationAssembler {
 		dto.setMainOrSubCampus(org.getMainOrSubCampus());
 		dto.setComments(org.getComments());
 		dto.setConnected(org.getConnected());
-		dto.setEnglishName(org.getEnglishName());
+		dto.setName(org.getName());
 		dto.setFrenchName(org.getFrenchName());
 		dto.setGeom(geomAssembler.getDTO(org.getGeom()));
 		dto.setMemberSince(org.getMemberSince());
@@ -54,6 +58,14 @@ public class OrganizationAssembler {
 		dto.setPhone(org.getPhone());
 
 		return dto;
+	}
+
+	public List<OrganizationDTO> getDTO(List<Organization> list) throws Exception {
+		ArrayList<OrganizationDTO> ret = new ArrayList<>();
+		for(Organization itm : list)
+			ret.add(getDTO(itm));
+		
+		return ret;
 	}
 	
 	

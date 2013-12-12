@@ -19,7 +19,7 @@ import ca.cybera.netmap.service.NetworkConnectionService;
 
 @Controller
 @RequestMapping("/networkConnection")
-public class NetworkConnectionController {
+public class NetworkConnectionController extends BaseController {
 
 	@Inject
 	private NetworkConnectionService service;

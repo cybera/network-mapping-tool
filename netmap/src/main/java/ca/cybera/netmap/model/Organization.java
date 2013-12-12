@@ -31,12 +31,10 @@ public class Organization {
 	@JoinColumn(name = "org_type")
 	private OrganizationType organizationType;
 
-	@ManyToOne
-	@JoinColumn(name = "website_uuid")
-	private Website website;
+	private String website;
 
-	@Column(name = "english_name")
-	private String englishName;
+	@Column(name = "name")
+	private String name;
 
 	@Column(name = "french_name")
 	private String frenchName;
@@ -75,6 +73,8 @@ public class Organization {
 	@Column(name = "member_since")
 	private Date memberSince;
 
+
+	
 	public String getUUID() {
 		return UUID;
 	}
@@ -91,12 +91,14 @@ public class Organization {
 		this.organizationType = organizationType;
 	}
 
-	public String getEnglishName() {
-		return englishName;
+	
+
+	public String getName() {
+		return name;
 	}
 
-	public void setEnglishName(String englishName) {
-		this.englishName = englishName;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getFrenchName() {
@@ -195,4 +197,14 @@ public class Organization {
 		this.memberSince = memberSince;
 	}
 
+	public String getWebsite() {
+		return website;
+	}
+
+	public void setWebsite(String website) {
+		this.website = website;
+	}
+
+
+	
 }

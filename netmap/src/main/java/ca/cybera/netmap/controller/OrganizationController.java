@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,17 +22,25 @@ import ca.cybera.netmap.service.OrganizationService;
 
 @Controller
 @RequestMapping("/organization")
-public class OrganizationController {
+public class OrganizationController extends BaseController {
 
 	@Inject private OrganizationAssembler assembler;
 	
 	@Inject private OrganizationService service;
 
+	private Logger log = LoggerFactory.getLogger(getClass());
+
+	
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	public @ResponseBody
 	OrganizationDTO post(@RequestBody OrganizationDTO organization) throws Exception {
+		Organization o = assembler.assemble(organization);
 
-		return assembler.getDTO(service.save(assembler.assemble(organization)));
+		log.debug("incoming: "+o);
+		Organization ret = service.save(o);
+		log.debug("outgoing: "+ret);
+		
+		return assembler.getDTO(ret);
 
 	}
 
@@ -38,7 +48,7 @@ public class OrganizationController {
 	public @ResponseBody
 	void delete(@PathVariable("uuid") String uuid) throws Exception {
 
-		service.delete(service.get(uuid));
+		service.delete(uuid);
 
 	}
 
@@ -52,9 +62,9 @@ public class OrganizationController {
 
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	public @ResponseBody
-	List<Organization> getAll() throws Exception {
+	List<OrganizationDTO> getAll() throws Exception {
 
-		return service.get();
+		return assembler.getDTO(service.get());
 
 	}
 
