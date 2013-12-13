@@ -19,6 +19,9 @@
 	  <script type="text/javascript" src="js/jquery.contextMenu.js"></script>
 	  <link rel="stylesheet" href="css/jquery.contextMenu.css" type="text/css" />
 	  
+	  <script type="text/javascript" src="js/jquery.colorpicker.js"></script>
+	  <link rel="stylesheet" href="css/jquery.colorpicker.css" type="text/css" />
+	  
 
 
 
@@ -209,11 +212,8 @@ function handleDrag(place) {
 }
 
 function handleDragEnd(place) {
-	var record = $.extend({}, place);
-	delete record.marker;
-	
-	console.log("location update, merge it:",record);
-	mergeOrganization(record);
+	console.log("location update, merge it:",place);
+	mergeOrganization(place);
 }
 
 
@@ -261,6 +261,19 @@ $(document).ready(function() {
 	
 	indexedLinkTypes = {} 
 
+	
+	$("#orgTypeDialog").dialog({
+		autoOpen: false,
+		title: 'Manage Organization Types',
+		width: 400,
+		height: 400,
+		buttons: {'Done': function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+	setupOrgTypes();
+	
 	
 	$("#fileinput").hide().fileReaderJS({
 			on: {
@@ -317,6 +330,25 @@ $(document).ready(function() {
 		});
 		
 		//toolbar
+		
+		$.contextMenu({
+			selector: "#settingsButton",
+			trigger: 'left',
+			build: function($trigger, e) {
+				return {
+					callback: function(key, options) {
+						if(key == 'orgTypes') {
+							$("#orgTypeDialog").dialog("open");
+						}
+					},
+					
+					items: {'orgTypes': {name:'Organization Types'},
+							'networks': {name:'Networks'}
+					}
+				};
+			}
+		});
+		
 		$("#openButton").click(function() {
 			$("#fileinput").click();
 			return false;
@@ -404,6 +436,7 @@ $(document).ready(function() {
 		tabs.dialog({
 			width: 'auto',
 			autoOpen: false
+
 		});
 	
 		
@@ -444,7 +477,103 @@ $(document).ready(function() {
 		
 })
 
+function colorFormatter(cellvalue, options, rowObject) {
+	return "<span style='display: inline-block; width:20px; height:20px; background-color: "+cellvalue+"'/>";
+}
 
+function hexc(colorval) {
+    var parts = colorval.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    delete(parts[0]);
+    for (var i = 1; i <= 3; ++i) {
+        parts[i] = parseInt(parts[i]).toString(16);
+        if (parts[i].length == 1) parts[i] = '0' + parts[i];
+    }
+    color = '#' + parts.join('');
+}
+
+function setupOrgTypes() {
+	$.getJSON("ns/organization/types", function(types) {
+	organizationTypes = types;
+	
+	var colNames = ["Organization Type", "Colour"];
+	var colModel = [{
+		editable: true, 
+		name: 'type', 
+		sortable: true,
+		key: true
+	},
+	{
+		editable: true, 
+		name: 'colour', 
+		sortable: true,
+		formatter: colorFormatter,
+		edittype: 'custom',
+		editoptions: {
+			custom_element: function(value, options) {
+				console.log(value, options);
+				var $span = $(value);
+				
+				var input = $("<input>", {type: 'input', value: $span.css("background-color")}).colorpicker({
+					colorFormat: "RGB"
+				});
+				return input[0];
+				
+			},
+			custom_value: function(elem) {
+			 	var val = $(elem).val();
+			 	console.log("val: ", val);
+			 	return val;
+			}
+		}
+	}
+	];
+	
+	var orgTypeLastSel;
+	var tableOptions = {
+			datatype: "local",
+			sortable: true,
+			colNames:colNames,
+			colModel:colModel,
+			shrinkToFit: true,
+			height: 175,
+			width: 400,
+			rowNum: types.length,
+		   	rowList:[10,20,30],
+		   	scroll: true,
+		   	scrollrows: true,
+//		   	pager: '#pagernav',
+			onSelectRow: function(id, status, event){
+				//check if edit bailed
+				if(id && id!==orgTypeLastSel){
+					$("#orgTypeTable").jqGrid('restoreRow',orgTypeLastSel);
+				}
+			},
+			ondblClickRow: function (id, ri, ci, e) {
+				//edit on double click
+
+				orgTypeLastSel=id;
+				
+				$("#orgTypeTable").jqGrid('editRow', id, {
+			    	url: 'clientArray',
+			    	keys: true,
+			    	aftersavefunc: function() {
+
+			    	}
+			    });    
+				
+				
+				
+			}
+			
+		};
+	
+	
+		var table = $("#orgTypeTable").jqGrid(tableOptions).navGrid("#pagernav",{edit:false,add:false,del:false});
+		table[0].p.data = types;
+		table.trigger('reloadGrid');
+
+	});
+}
 
 function deleteOrganization(id, callback) {
 	$.ajax({
@@ -470,10 +599,19 @@ function deleteOrganization(id, callback) {
 }
 
 function mergeOrganization(org, callback) {
+	var record = $.extend({},org);
+	
+	delete record.marker;
+	delete record.links;
+	delete record.latitude;
+	delete record.longitude;
+
+	
+	
 	$.ajax({
         url: 'ns/organization',
         dataType: 'json', 
-        data: JSON.stringify(org),
+        data: JSON.stringify(record),
         cache: false,
 		headers: {
 		    'Accept' : 'application/json',
@@ -583,6 +721,7 @@ function setupTable() {
 
 		if(key == "uuid") {
 			opts.key = true;
+			opts.hidden = true;		
 		}
 		
 		if(key == 'organizationType') {
@@ -609,6 +748,10 @@ function setupTable() {
 	
 	var w = $(window).width();
 	var lastsel;
+	
+	console.log("colNames:",colNames);
+	console.log("colModel:",colModel);
+	
 	tableOptions = {
 			datatype: "local",
 			sortable: true,
@@ -678,7 +821,27 @@ function setupTable() {
 				callback: function(key, options) {
 					if(key == "edit")
 						editRow(sel);
-					else if(key == "geocode")
+					else if(key == "geocode") {
+						var geocoder = new google.maps.Geocoder();
+						
+						geocoder.geocode({address: address}, function(results, status) {
+							console.log('geocode: ',address+" -> ",status);
+							if(status == google.maps.GeocoderStatus.OK) {
+
+								var newLatLng = new google.maps.LatLng(results[0].geometry.location.lat(), results[0].geometry.location.lng());
+								indexedPlaces[sel].marker.setPosition(newLatLng);
+								indexedPlaces[sel].geom = {type: "Point", coordinates: [newLatLng.lng(), newLatLng.lat()]};
+
+								mergeOrganization(indexedPlaces[sel]);
+//								console.log("save here too...");
+
+							} else {
+								showToast("unable to geocode", false, 'error');
+							}
+							
+						});
+						
+					}
 						console.log("geocode" + address);
 				},
 				items: items	
@@ -718,20 +881,8 @@ function editRow(id) {
 			var pos = indexedPlaces[id].marker.getPosition();
 			indexedPlaces[id].geom = {type: "Point", coordinates: [pos.lng(), pos.lat()]};
 			indexedPlaces[id].organizationType = uniqueTypes[indexedPlaces[id].organizationType];
-    		
-    		var record = $.extend({},indexedPlaces[id]);
-    		
-//			record.geom = {type: "Point", coordinates: [pos.lng(), pos.lat()]};
-//			record.organizationType = uniqueTypes[record.organizationType];
-			delete record.marker;
-			delete record.links;
-			delete record.latitude;
-			delete record.longitude;
 			
-			mergeOrganization(record);
-			console.log("should save: ",record);
-
-			
+			mergeOrganization(indexedPlaces[id]);
     	}
     });
 }
@@ -793,6 +944,7 @@ padding:0px;
 .btn {
 padding-top:2px;
 padding-right:5px;
+cursor: pointer;
 }
 
 .ui-button .ui-icon.draw-icon {
@@ -814,6 +966,7 @@ padding-right:5px;
 	<div id="bottom" style="border-top: 3px solid lightgrey; position: absolute; left:0px; bottom:0px; width:100%; height:225px;'">
 	
 		<div id="toolbar" style="margin-left:10px; height:25px; width:100%">
+			<img title="Settings" id="settingsButton" class="btn" style="float:right; margin-right:20px;"src='images/settings.png'>
 			<img title="Open Map" id="openButton" class="btn" src='images/open.png'>
 			<img title="Add Place" id="addButton" class="btn" src='images/add.png'>
 			<img title="Delete Place" id="deleteButton" class="btn" src='images/delete.png'>
@@ -869,6 +1022,16 @@ padding-right:5px;
 		<div id="links"></div>
 	</div>
  -->	 	
+	
+	<div id="orgTypeDialog">
+		<div id="orgTypeToolbar" style="margin-left:10px; height:25px; width:100%">
+			<img title="Add" id="orgTypeAddButton" class="btn" src='images/add.png'>
+			<img title="Edit" id="orgTypeEditButton" class="btn" src='images/edit.png'>
+			<img title="Delete" id="orgTypeDeleteButton" class="btn" src='images/delete.png'>
+		</div>
+		<table id="orgTypeTable"></table>
+	</div>
+	
 	
 </body>
 
