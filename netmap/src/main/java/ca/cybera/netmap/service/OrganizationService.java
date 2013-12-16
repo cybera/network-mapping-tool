@@ -23,6 +23,8 @@ public interface OrganizationService {
 	
 	public OrganizationType getType(String type);
 
+	public void deleteType(String uuid);
+
 
 	
 }

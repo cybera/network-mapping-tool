@@ -73,6 +73,12 @@ public class OrganizationServiceImpl implements OrganizationService {
 		return entityManager.createQuery("select o from OrganizationType o", OrganizationType.class).getResultList();
 
 	}
+	
+	@Override
+	public void deleteType(String uuid){
+		entityManager.remove(getType(uuid));
+	}
+
 
 	@Override
 	public OrganizationType getType(String type) {

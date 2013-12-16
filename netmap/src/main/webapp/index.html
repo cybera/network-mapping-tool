@@ -175,13 +175,6 @@ function outputTable() {
 function loadPlaces(places) {
 	indexedPlaces={};
 
-	
-	uniqueTypes = {};
-
-	
-	uniqueTypes['testtype'] = {type: 'testtype', colour: 'black'};
-	uniqueTypes['type2'] = {type: 'type2', colour: 'red'};
-	
 	$.each(places, function(idx, place) {
 		//place.name = place['Institutions - Eng Name'];
 	
@@ -197,9 +190,6 @@ function loadPlaces(places) {
 		
 		indexedPlaces[place.uuid] = place;
 	});
-
-	//testing out autocomplete in table with these
-	types = Object.keys(uniqueTypes);
 }
 
 function getFirstProperty(obj) {
@@ -249,6 +239,7 @@ function doresize() {
 
 $(document).ready(function() {
 	editMode = false;
+	
 	
 	if(querystring("mode") == "editMode")
 		editMode = true;
@@ -495,12 +486,24 @@ function setupOrgTypes() {
 	$.getJSON("ns/organization/types", function(types) {
 	organizationTypes = types;
 	
-	var colNames = ["Organization Type", "Colour"];
-	var colModel = [{
+	orgTypesById = {};
+	orgTypesByType = {};
+	$.each(organizationTypes, function(idx, itm) {
+		orgTypesById[itm.uuid] = itm;
+		orgTypesByType[itm.type] = itm;
+	});
+	
+	var colNames = ["UUID","Organization Type", "Colour"];
+	var colModel = [
+     {
+     	hidden: true,
+     	name: 'uuid',
+     	key: true
+     },
+	                {
 		editable: true, 
 		name: 'type', 
-		sortable: true,
-		key: true
+		sortable: true
 	},
 	{
 		editable: true, 
@@ -557,7 +560,8 @@ function setupOrgTypes() {
 			    	url: 'clientArray',
 			    	keys: true,
 			    	aftersavefunc: function() {
-
+			    		console.log("id:",id);
+			    		mergeOrgType(orgTypesById[id]);
 			    	}
 			    });    
 				
@@ -572,12 +576,40 @@ function setupOrgTypes() {
 		table[0].p.data = types;
 		table.trigger('reloadGrid');
 
+		
+		$("#orgTypeAddButton").click(function() {
+			mergeOrgType({colour:"black"}, function(org) {
+				var table = $("#orgTypeTable").jqGrid('addRowData', org.uuid, org, "first");
+				$("#orgTypeTable").jqGrid('editRow', orig.uuid, true, 'clientArray');
+			});
+		});
+		
+		
+		$("#orgTypeDeleteButton").click(function() {
+			var id = $("#orgTypeTable").jqGrid("getGridParam", "selrow");
+			$.confirm("Do you want to delete "+orgTypesById[id].type+"?", {
+				title: 'Confirm Delete',
+				buttons: {
+					"Yes": function() {
+						deleteOrgType(id);
+						$(this).dialog("close");
+
+						$("#orgTypeTable").jqGrid('delRowData', id);
+					},
+					"No": function() {
+						$(this).dialog("close");
+					}
+				}
+			});
+		});
+
+		
 	});
 }
 
-function deleteOrganization(id, callback) {
+function deleteCall(url, callback) {
 	$.ajax({
-        url: 'ns/organization/'+id,
+        url: url,
         cache: false,
 		headers: {
 		    'Accept' : 'application/json',
@@ -597,6 +629,40 @@ function deleteOrganization(id, callback) {
     });
 	
 }
+
+function deleteOrganization(id, callback) {
+	deleteCall("ns/organization/"+id, callback);	
+}
+
+function deleteOrgType(id, callback) {
+	deleteCall("ns/organization/type/"+id, callback);	
+}
+
+function mergeOrgType(orgType, callback) {
+	console.log("orgType:",orgType);
+	
+	$.ajax({
+        url: 'ns/organization/type',
+        dataType: 'json', 
+        data: JSON.stringify(orgType),
+        cache: false,
+		headers: {
+		    'Accept' : 'application/json',
+		    'Content-Type' : 'application/json'
+			},
+        processData: false,
+        type: 'POST',
+        success: function(response) {
+        	console.log(response);
+        	if(callback)
+        		callback(response);
+        },
+        error: function(request, type, errorThrown) {
+        	handleError(request);
+        }
+    });
+}
+
 
 function mergeOrganization(org, callback) {
 	var record = $.extend({},org);
@@ -725,9 +791,27 @@ function setupTable() {
 		}
 		
 		if(key == 'organizationType') {
-			opts.edittype = 'select';
+			opts.edittype = 'custom';
 			opts.editoptions = {
-				value: "testype:testtype; type2:type2"
+				custom_element: function(value, options) {
+					console.log(value, options);
+
+					var select = $("<select>");
+					
+					$.each(organizationTypes, function(idx, itm) {
+						var option = $("<option>", {value: itm.type}).html(itm.type).appendTo(select);
+						if(itm.type == value)
+							option.attr("selected", "selected");
+						
+					});
+					
+					return select;
+				},
+				custom_value: function(elem) {
+				 	var val = $(elem).val();
+				 	console.log("val: ", val);
+				 	return val;
+				}
 			};
 		}
 		else if(key == 'connected') {
@@ -880,7 +964,7 @@ function editRow(id) {
     		//update back to objects
 			var pos = indexedPlaces[id].marker.getPosition();
 			indexedPlaces[id].geom = {type: "Point", coordinates: [pos.lng(), pos.lat()]};
-			indexedPlaces[id].organizationType = uniqueTypes[indexedPlaces[id].organizationType];
+			indexedPlaces[id].organizationType = orgTypesByType[indexedPlaces[id].organizationType];
 			
 			mergeOrganization(indexedPlaces[id]);
     	}
