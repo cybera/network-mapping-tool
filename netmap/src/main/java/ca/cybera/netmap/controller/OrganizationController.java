@@ -83,6 +83,14 @@ public class OrganizationController extends BaseController {
 		return service.save(type);
 
 	}
+	
+	@RequestMapping(value = "/type/{uuid}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	void deleteType(@PathVariable("uuid") String uuid) throws Exception {
+		service.deleteType(uuid);
+
+	}
+
 
 	@RequestMapping(value = "/types", method = RequestMethod.GET)
 	public @ResponseBody

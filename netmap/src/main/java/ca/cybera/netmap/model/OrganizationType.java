@@ -2,9 +2,12 @@ package ca.cybera.netmap.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.hibernate.annotations.GenericGenerator;
 
 @XmlRootElement
 @Entity
@@ -12,10 +15,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class OrganizationType {
 
 	@Id
+	@GeneratedValue(generator = "uuid")
+	@GenericGenerator(name = "uuid", strategy = "uuid2")
+	@Column(name = "UUID")
+	private String UUID;
+	
 	@Column(name = "type")
 	private String type;
 
-	@Column(name = "colour", unique = true, nullable = false)
+	@Column(name = "colour", nullable = false)
 	private String colour;
 
 	public OrganizationType() {
@@ -44,4 +52,13 @@ public class OrganizationType {
 		this.colour = colour;
 	}
 
+	public String getUUID() {
+		return UUID;
+	}
+
+	public void setUUID(String UUID) {
+		this.UUID = UUID;
+	}
+
+	
 }
