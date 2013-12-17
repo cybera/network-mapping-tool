@@ -3,7 +3,6 @@ package ca.cybera.netmap.dto;
 import java.util.Date;
 
 import ca.cybera.netmap.model.OrganizationType;
-import ca.cybera.netmap.model.Website;
 
 public class OrganizationDTO {
 	private String UUID;

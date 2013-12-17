@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import ca.cybera.netmap.dto.OrganizationDTO;
 import ca.cybera.netmap.model.Organization;
-import ca.cybera.netmap.model.OrganizationType;
 
 @Component
 public class OrganizationAssembler {

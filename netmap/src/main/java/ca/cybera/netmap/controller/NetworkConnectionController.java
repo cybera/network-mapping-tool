@@ -12,23 +12,24 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import ca.cybera.netmap.assembler.NetworkConnectionAssembler;
+import ca.cybera.netmap.dto.NetworkConnectionDTO;
 import ca.cybera.netmap.model.ConnectionSpeed;
 import ca.cybera.netmap.model.Network;
-import ca.cybera.netmap.model.NetworkConnection;
 import ca.cybera.netmap.service.NetworkConnectionService;
 
 @Controller
 @RequestMapping("/networkConnection")
 public class NetworkConnectionController extends BaseController {
 
-	@Inject
-	private NetworkConnectionService service;
+	@Inject private NetworkConnectionService service;
+	@Inject private NetworkConnectionAssembler assembler;
 
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	public @ResponseBody
-	NetworkConnection post(@RequestBody NetworkConnection networkConnection) throws Exception {
+	NetworkConnectionDTO post(@RequestBody NetworkConnectionDTO networkConnection) throws Exception {
 
-		return service.save(networkConnection);
+		return assembler.getDTO(service.save(assembler.assemble(networkConnection)));
 
 	}
 
@@ -42,25 +43,25 @@ public class NetworkConnectionController extends BaseController {
 
 	@RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
 	public @ResponseBody
-	NetworkConnection get(@PathVariable("uuid") String uuid) throws Exception {
+	NetworkConnectionDTO get(@PathVariable("uuid") String uuid) throws Exception {
 
-		return service.get(uuid);
+		return assembler.getDTO(service.get(uuid));
 
 	}
 
 	@RequestMapping(value = "s", method = RequestMethod.GET)
 	public @ResponseBody
-	List<NetworkConnection> getAll() throws Exception {
+	List<NetworkConnectionDTO> getAll() throws Exception {
 
-		return service.get();
+		return assembler.getDTO(service.get());
 
 	}
 
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	public @ResponseBody
-	List<NetworkConnection> getAll(@RequestParam("network") String network) throws Exception {
+	List<NetworkConnectionDTO> getAll(@RequestParam("network") String network) throws Exception {
 
-		return service.get(service.getNetwork(network));
+		return assembler.getDTO(service.get(service.getNetwork(network)));
 
 	}
 
