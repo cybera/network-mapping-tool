@@ -367,9 +367,10 @@ Map.prototype.setStyle = function(style) {
 
 
 Map.prototype.drawLink = function(link, from, to, type) {
-	var ll1 = new google.maps.LatLng(from.latitude, from.longitude);
-	var ll2 = new google.maps.LatLng(to.latitude, to.longitude);
+	var ll1 = new google.maps.LatLng(from.geom.coordinates[1], from.geom.coordinates[0]);
+	var ll2 = new google.maps.LatLng(to.geom.coordinates[1], to.geom.coordinates[0]);
 
+	
 	/*
 	var image = new google.maps.MarkerImage('http://maps.google.com/mapfiles/kml/pal4/icon57.png',
 		      new google.maps.Size(32, 32),
@@ -433,14 +434,15 @@ Map.prototype.drawLink = function(link, from, to, type) {
     
     var me = this;
  	google.maps.event.addListener(pl, 'click', function(e) {
+ 		console.log('Click On Link');
 			var base = $("<div>");
  			$("<div>").html("<strong>"+from.name+" -> "+to.name+"</strong>").appendTo(base);
  			
  			if(editMode) {
 	 			var select = $("<select>").appendTo(base);
 	 			$.each(indexedLinkTypes, function(idx, itm) {
-	 				var option = $("<option>", {value:idx}).html(idx);
-	 				if(link.type == idx)
+	 				var option = $("<option>", {value:itm.speed}).html(itm.speed);
+	 				if(link.connectionSpeed.speed == itm.connectionSpeed)
 	 					option.attr("selected", "selected");
 	 				
 	 				option.appendTo(select);

@@ -49,7 +49,7 @@ public class NetworkConnectionController extends BaseController {
 
 	}
 
-	@RequestMapping(value = "s", method = RequestMethod.GET)
+	@RequestMapping(value = "", method = RequestMethod.GET)
 	public @ResponseBody
 	List<NetworkConnectionDTO> getAll() throws Exception {
 
@@ -57,9 +57,9 @@ public class NetworkConnectionController extends BaseController {
 
 	}
 
-	@RequestMapping(value = "", method = RequestMethod.GET)
+	@RequestMapping(value = "/network", method = RequestMethod.GET)
 	public @ResponseBody
-	List<NetworkConnectionDTO> getAll(@RequestParam("network") String network) throws Exception {
+	List<NetworkConnectionDTO> getAllByNetwork(@RequestParam("network") String network) throws Exception {
 
 		return assembler.getDTO(service.get(service.getNetwork(network)));
 

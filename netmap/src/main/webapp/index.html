@@ -112,7 +112,7 @@ function createLink(from, to, open) {
 
 	var type = Object.keys(indexedLinkTypes)[0];
 	
-	var link = {start: f.id, end: t.id, type: type};
+	var link = {start: f.id, end: t.id, connectionSpeed: type};
 	links.push(link);
 	
 	var line = map.drawLink(link, f, t, indexedLinkTypes[type]);
@@ -256,12 +256,7 @@ $(document).ready(function() {
 	
 	console.log("editmode: ", editMode);
 	var locations;
-	
-	//hardcoded links for now.
-	
-	indexedLinkTypes = {} 
-
-	
+		
 	$("#orgTypeDialog").dialog({
 		autoOpen: false,
 		title: 'Manage Organization Types',
@@ -473,8 +468,18 @@ $(document).ready(function() {
 
 	});
 
+	
+	$.getJSON('ns/networkConnection', function(result) {
+		console.log('Network Connections: ', result);
+		links = result;
+	});
 		
-		
+	
+	$.getJSON('ns/networkConnection/speeds', function(result) {
+		console.log('Connection Speeds: ', result);
+		indexedLinkTypes = result; 
+	});
+	
 })
 
 function colorFormatter(cellvalue, options, rowObject) {
