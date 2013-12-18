@@ -1,12 +1,15 @@
 package ca.cybera.netmap.controller;
 
 import java.io.BufferedInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,11 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import ca.cybera.netmap.assembler.OrganizationAssembler;
 import ca.cybera.netmap.dto.OrganizationDTO;
 import ca.cybera.netmap.model.Organization;
+import ca.cybera.netmap.model.OrganizationDisplay;
 import ca.cybera.netmap.model.OrganizationType;
 import ca.cybera.netmap.service.OrganizationService;
 
@@ -108,5 +113,21 @@ public class OrganizationController extends BaseController {
 
 		return service.getTypes();
 
+	}
+	
+	@RequestMapping(value = "/displayDetails", method = RequestMethod.GET)
+	public @ResponseBody
+	List<OrganizationDisplay> getOrgDisplay() throws Exception {
+		return service.getOrgDisplay();
+
+	}
+	
+	@RequestMapping(value = "/displayDetails", method = RequestMethod.POST)
+	public @ResponseBody
+	void saveOrgDisplay(@RequestBody OrganizationDisplay[] orgDisplays) throws Exception {
+		List<OrganizationDisplay> list = new ArrayList<>();
+		list.addAll(Arrays.asList(orgDisplays));
+		
+		service.saveOrgDisplay(list);
 	}
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.cybera.netmap.model.Organization;
+import ca.cybera.netmap.model.OrganizationDisplay;
 import ca.cybera.netmap.model.OrganizationType;
 
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -159,4 +160,20 @@ public class OrganizationServiceImpl implements OrganizationService {
 		
 	}
 
+	
+	@Override
+	public List<OrganizationDisplay> getOrgDisplay() {
+
+		return entityManager.createQuery("select o from OrganizationDisplay o  order by o.sortOrder", OrganizationDisplay.class).getResultList();
+
+	}
+	
+	@Override
+	public void saveOrgDisplay(List<OrganizationDisplay> displays) {
+		for(OrganizationDisplay od : displays) {
+			entityManager.merge(od);
+		}
+	}
+	
+	
 }

@@ -156,16 +156,11 @@ function Map() {
      				else {
      					var place = indexedPlaces[marker.placename];
      					
-     					if(place.website)
-     						$("<div>").text(place.website).appendTo(base);
-     					if(place.organization)
-     						$("<div>").text(place.organization.type).appendTo(base);
-     					
-     					if(place.memberSince)
-     						$("<div>").text(place.memberSince).appendTo(base);
-     					
-     					$("<div>").text(place.address).appendTo(base);
-     					$("<div>").text(place.city+" "+place.province+" "+place.postalCode).appendTo(base);
+     					$.each(orgDisplayItems, function(idx, itm) {
+     						if(place[itm]) {
+         						$("<div>").text(place[itm]).appendTo(base);
+     						}
+     					});
      					
      				}
      				

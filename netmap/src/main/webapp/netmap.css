@@ -1,0 +1,11 @@
+#displayDetails li {
+margin: 0 5px 5px 5px;
+padding: 5px;
+font-size: 1.2em;
+height: 1.5em;
+}
+
+#displayDetails {
+list-style-type: none;
+padding-left:0px;
+}
