@@ -372,64 +372,11 @@ Map.prototype.setStyle = function(style) {
 Map.prototype.drawLink = function(link, from, to, type) {
 	var ll1 = new google.maps.LatLng(from.geom.coordinates[1], from.geom.coordinates[0]);
 	var ll2 = new google.maps.LatLng(to.geom.coordinates[1], to.geom.coordinates[0]);
-
-	
-	/*
-	var image = new google.maps.MarkerImage('http://maps.google.com/mapfiles/kml/pal4/icon57.png',
-		      new google.maps.Size(32, 32),
-		      new google.maps.Point(0,0),
-		      new google.maps.Point(16, 16));
-	
-	marker = new google.maps.Marker({
-		position: ll1,
-		map: this.map,
-		title: from.name,
-		icon: image 
-	});
-	marker = new google.maps.Marker({
-		position: ll2,
-		map: this.map,
-		title: to.name,
-		icon: image
-	});
-	*/
-	
-	
-    /*var lineSymbol = {
-                      path: 'M 0,-1 0,1',
-                      strokeOpacity: 0.3,
-                              strokeColor: '#30B9ED',
-                      scale: 4
-                    };
-*/
 	
 	var options = $.extend({}, type, {
 		path: [ll1, ll2],
 		map: this.map
 	});
-
-	
-    //var total = Math.abs(from.coords.latitude-to.coords.latitude)+Math.abs(from.coords.longitude-to.coords.longitude);
-	//var factor = total*.10;
-    //var controlLat = from.coords.latitude+factor;
-    //var controlLon = from.coords.longitude+factor;
-    
-//    var pl = new GmapsCubicBezier(from.coords.latitude, from.coords.longitude, controlLat, controlLon, controlLat, controlLon, to.coords.latitude, to.coords.longitude, 0.1, this.map);
-    
-    /*
-    var pl = new google.maps.Polyline({
-    	path: [ll1, ll2],
-        strokeColor: "#30B9ED",
-        strokeOpacity: 1.0,
-        strokeWeight: 4,
-        zIndex:1000,
-        //icons: [{
-//        	icon: lineSymbol,
-            //offset: '0',
-            //repeat: '20px'
-        //}],
-        map: this.map});
-    */
     
     var pl = new google.maps.Polyline(options);
     
@@ -442,7 +389,11 @@ Map.prototype.drawLink = function(link, from, to, type) {
  			$("<div>").html("<strong>"+from.name+" -> "+to.name+"</strong>").appendTo(base);
  			
  			if(editMode) {
-	 			var select = $("<select>").appendTo(base);
+ 				
+ 				var speedDiv = $("<div>", {style: 'display: inline-block; padding: 5px;'}).appendTo(base);
+ 				
+ 				$("<label>", {text: 'Speed: '}).appendTo(speedDiv);
+	 			var select = $("<select>").appendTo(speedDiv);
 	 			$.each(indexedLinkTypes, function(idx, itm) {
 	 				var option = $("<option>", {value:itm.speed}).html(itm.speed);
 	 				if(link.connectionSpeed.speed == itm.connectionSpeed)
@@ -452,32 +403,27 @@ Map.prototype.drawLink = function(link, from, to, type) {
 	 				
 	 				
 	  			});
+
 	 			select.change(function() {
-	 				console.log($(this).val());
-	 				link.type=$(this).val();
-	 				
-	 				/*var options = $.extend({}, indexedLinkTypes[$(this).val()], {
-	 					path: [ll1, ll2],
-	 					map: me.map
-	 				}); */
+	 				link.connectionSpeed.speed =$(this).val();
 	 				pl.setOptions(indexedLinkTypes[$(this).val()]);
-	 				//need to update link here as well...
-	 				
-	 				displayLinks();
+	 				saveNetworkConnection(link);
 	 			});
+	 			
  			
- 			
-	 			$("<button>").html("Delete").click(function() {
+	 			$("<button>", {style: 'margin: 5px; padding: 0px;'}).html("Delete").click(function() {
 	 				$.confirm("Do you want to delete this link?", {
 	 					title: 'Confirm Delete',
 	 					buttons: {
 	 						"Yes": function() {
 	 							$(this).dialog("close");
-	 			 				links.splice(links.indexOf(link), 1);
-	 			 				console.log(links);
-	 			 				
-	 			 				pl.setMap(null);
-	 			 				me.infoWindow.close();
+	 							deleteNetworkConnection(link, function() {
+		 			 				links.splice(links.indexOf(link), 1);
+		 			 				console.log(links);
+		 			 				
+		 			 				pl.setMap(null);
+		 			 				me.infoWindow.close();
+	 							});
 	 						},
 	 						"No": function() {
 	 							$(this).dialog("close");

@@ -37,9 +37,9 @@ public class NetworkConnectionServiceImpl implements NetworkConnectionService {
 	}
 
 	@Override
-	public void delete(NetworkConnection networkConnection) {
+	public void delete(String uuid) {
 
-		entityManager.remove(networkConnection);
+		entityManager.remove(get(uuid));
 
 	}
 

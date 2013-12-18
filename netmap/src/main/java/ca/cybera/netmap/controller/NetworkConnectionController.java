@@ -37,7 +37,7 @@ public class NetworkConnectionController extends BaseController {
 	public @ResponseBody
 	void delete(@PathVariable("uuid") String uuid) throws Exception {
 
-		service.delete(service.get(uuid));
+		service.delete(uuid);
 
 	}
 

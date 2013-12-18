@@ -30,6 +30,7 @@
 		
 
 	  <script type="text/javascript" src="map.js"></script>
+	  <script type="text/javascript" src="netmap.js"></script>
 	  
 	  <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
 	 <link rel="stylesheet" href="css/ui.jqgrid.css" type="text/css" />
@@ -112,14 +113,19 @@ function createLink(from, to, open) {
 	var f = indexedPlaces[from];
 	var t = indexedPlaces[to];
 
-	var type = Object.keys(indexedLinkTypes)[0];
+	var type = indexedLinkTypes[0];
 	
-	var link = {start: f.id, end: t.id, connectionSpeed: type};
-	links.push(link);
+	var networkConnection = {
+			connectionSpeed: type,
+			orgStartUUID: f.uuid,
+			orgEndUUID: t.uuid			
+	};
 	
-	var line = map.drawLink(link, f, t, indexedLinkTypes[type]);
-	if(open)
-		google.maps.event.trigger(line, 'click');
+	saveNetworkConnection(networkConnection, function(link) {
+		links.push(link);
+		var line = map.drawLink(link, f, t, indexedLinkTypes[0]);
+		// if (open) google.maps.event.trigger(line, 'click');
+	});
 }
 
 function createCSV(data) {
@@ -217,8 +223,8 @@ function showLinks() {
 	map.clearLines();
 	
 	$.each(links, function(idx, link) {
-		var from = indexedPlaces[link.start];
-		var to = indexedPlaces[link.end];
+		var from = indexedPlaces[link.orgStartUUID];
+		var to = indexedPlaces[link.orgEndUUID];
 		console.log("call draw link...");
 		var line = map.drawLink(link, from, to, indexedLinkTypes[link.type]);
 	});
@@ -459,7 +465,7 @@ $(document).ready(function() {
 
 		
 	$.getJSON('ns/organization', function(result) {
-		console.log(result);
+		console.log('Organizations: ', result);
 		places = result;
 		loadPlaces(result);
 		setupTable();
@@ -470,6 +476,7 @@ $(document).ready(function() {
 	$.getJSON('ns/networkConnection', function(result) {
 		console.log('Network Connections: ', result);
 		links = result;
+		showLinks();
 	});
 		
 	
@@ -697,29 +704,6 @@ function setupOrgTypes() {
 	});
 }
 
-function deleteCall(url, callback) {
-	$.ajax({
-        url: url,
-        cache: false,
-		headers: {
-		    'Accept' : 'application/json',
-		    'Content-Type' : 'application/json'
-			},
-        processData: false,
-        type: 'DELETE',
-        success: function(response) {
-        	console.log(response);
-        	if(callback)
-        		callback(response);
-        },
-        error: function(request, type, errorThrown) {
-        	console.log("in error...");
-        	handleError(request);
-        }
-    });
-	
-}
-
 function deleteOrganization(id, callback) {
 	deleteCall("ns/organization/"+id, callback);	
 }
@@ -750,64 +734,10 @@ function mergeOrganization(org, callback) {
 	
 }
 
-function post(url, data, dataType, callback) {
-	$.ajax({
-        url: url,
-        dataType: dataType, 
-        data: JSON.stringify(data),
-        cache: false,
-		headers: {
-		    'Accept' : 'application/json',
-		    'Content-Type' : 'application/json'
-			},
-        processData: false,
-        type: 'POST',
-        success: function(response) {
-        	console.log(response);
-        	if(callback)
-        		callback(response);
-        },
-        error: function(request, type, errorThrown) {
-        	handleError(request);
-        }
-    });
-}
 
 
-function showToast(msg, sticky, type) {
-	if(type == undefined)
-		type='notice';
-	
-    $().toastmessage('showToast', {
-        text     : msg,
-        position: 'middle-center',
-        sticky   : sticky,
-        type     : type
-    });
-}
 
-function handleError(request) {
-	showToast(getError(request), false, 'error');
-}
 
-function getError(request) {
-	var message = "Error Occurred!";
-	
-	if (request.status) message += '  Error Code: [' + request.status + ']';
-	if (request.statusText) message += '  Error Message: [' + request.statusText + ']';
-	
-	if (request.responseText) {
-		var text = request.responseText;
-		try {
-			text = JSON.parse(request.responseText).message;
-		} catch(e) {}
-		if (text && text.length > 0) {
-			message += '  Response Text: ' + text;
-		}
-	}
-
-	return message;
-}
 
 function showData(results) {
 	map.clearOverlays();

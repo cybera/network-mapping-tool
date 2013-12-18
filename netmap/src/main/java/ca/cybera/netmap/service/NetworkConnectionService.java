@@ -12,7 +12,7 @@ public interface NetworkConnectionService {
 
 	public NetworkConnection get(String uuid);
 
-	public void delete(NetworkConnection networkConnection);
+	public void delete(String uuid);
 
 	public List<NetworkConnection> get();
 
