@@ -266,17 +266,8 @@ $(document).ready(function() {
 				load: function(e, file) {
 					console.log("****************************** FILE: ", file);
 					console.log("e:",e);
-					
-                    var fileReader = new FileReader();
-                    fileReader.onloadend = function(e) {
-						try {
-							showData(JSON.parse(this.result));
-	                    } catch(e) {
-	        				alert("Unable to parse file: "+e);
-	        			}
-                    };
-                    console.log("call readAs Text...");
-                    fileReader.readAsText(file);
+	
+					importKML(file);
 				},
 				error: function(e, file) {
 	            },
@@ -473,6 +464,30 @@ $(document).ready(function() {
 	
 })
 
+function importKML(file) {
+
+	var data = new FormData();
+
+	data.append("kmlFile", file);
+	
+
+	$.ajax({
+		url : 'ns/organization/loadKML',
+		data : data,
+		cache : false,
+		contentType : false,
+		processData : false,
+		type : 'POST',
+		success : function(data) {
+			showToast("reload organizations here...");
+		},
+		error : function(data) {
+			handleError(data);
+		}
+	});
+	
+}
+
 function colorFormatter(cellvalue, options, rowObject) {
 	return "<span style='display: inline-block; width:20px; height:20px; background-color: "+cellvalue+"'/>";
 }
@@ -584,6 +599,8 @@ function setupOrgTypes() {
 		
 		$("#orgTypeAddButton").click(function() {
 			mergeOrgType({colour:"black"}, function(org) {
+				orgTypesById[org.uuid] = org;
+				
 				var table = $("#orgTypeTable").jqGrid('addRowData', org.uuid, org, "first");
 				$("#orgTypeTable").jqGrid('editRow', orig.uuid, true, 'clientArray');
 			});
@@ -596,10 +613,10 @@ function setupOrgTypes() {
 				title: 'Confirm Delete',
 				buttons: {
 					"Yes": function() {
-						deleteOrgType(id);
+						deleteOrgType(id, function() {
+							$("#orgTypeTable").jqGrid('delRowData', id);
+						});
 						$(this).dialog("close");
-
-						$("#orgTypeTable").jqGrid('delRowData', id);
 					},
 					"No": function() {
 						$(this).dialog("close");
@@ -1056,7 +1073,7 @@ cursor: pointer;
 	
 		<div id="toolbar" style="margin-left:10px; height:25px; width:100%">
 			<img title="Settings" id="settingsButton" class="btn" style="float:right; margin-right:20px;"src='images/settings.png'>
-			<img title="Open Map" id="openButton" class="btn" src='images/open.png'>
+			<img title="Import KML" id="openButton" class="btn" src='images/open.png'>
 			<img title="Add Place" id="addButton" class="btn" src='images/add.png'>
 			<img title="Delete Place" id="deleteButton" class="btn" src='images/delete.png'>
 			<img title="Save" id="exportButton" class="btn" src='images/save.png'>

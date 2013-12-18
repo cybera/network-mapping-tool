@@ -32,6 +32,7 @@ public class OrganizationAssembler {
 		org.setGeom(geomAssembler.assemble(dto.getGeom()));
 		org.setMemberSince(dto.getMemberSince());
 		org.setOrganizationType(dto.getOrganizationType());
+		org.setWebsite(dto.getWebsite());
 		org.setPhone(dto.getPhone());
 
 		return org;
@@ -55,6 +56,7 @@ public class OrganizationAssembler {
 		dto.setMemberSince(org.getMemberSince());
 		dto.setOrganizationType(org.getOrganizationType());
 		dto.setPhone(org.getPhone());
+		dto.setWebsite(org.getWebsite());
 
 		return dto;
 	}

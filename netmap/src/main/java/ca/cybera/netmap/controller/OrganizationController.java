@@ -1,5 +1,6 @@
 package ca.cybera.netmap.controller;
 
+import java.io.BufferedInputStream;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import ca.cybera.netmap.assembler.OrganizationAssembler;
 import ca.cybera.netmap.dto.OrganizationDTO;
@@ -68,6 +70,14 @@ public class OrganizationController extends BaseController {
 
 	}
 
+	
+	@RequestMapping(value = "/loadKML", method = {RequestMethod.POST})
+	public @ResponseBody
+	void load(@RequestParam("kmlFile") MultipartFile kmlFile) throws Exception {
+		service.importKML(new BufferedInputStream(kmlFile.getInputStream()));
+	}
+
+	
 	@RequestMapping(value = "s", method = RequestMethod.GET)
 	public @ResponseBody
 	List<Organization> getAll(@RequestParam("type") String type) throws Exception {

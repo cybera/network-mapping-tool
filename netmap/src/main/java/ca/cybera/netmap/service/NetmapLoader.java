@@ -7,7 +7,12 @@ import org.springframework.stereotype.Service;
 
 import ca.cybera.netmap.model.ConnectionSpeed;
 import ca.cybera.netmap.model.Network;
+import ca.cybera.netmap.model.Organization;
 import ca.cybera.netmap.model.OrganizationType;
+
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.io.WKTReader;
 
 @Service
 public class NetmapLoader {
@@ -21,6 +26,7 @@ public class NetmapLoader {
 	public void load() {
 
 		loadInitialOrganizationTypes();
+		loadInitialOrganization();
 		loadInitialNetworks();
 		loadInitialConnectionSpeeds();
 
@@ -50,6 +56,21 @@ public class NetmapLoader {
 
 	}
 
+	private void loadInitialOrganization() {
+		try {
+			Organization o = new Organization();
+			
+			WKTReader reader = new WKTReader();
+			Geometry geom = reader.read("POINT(-114.02 51.11)");
+			
+			o.setGeom(geom);
+			
+			organizationService.save(o);
+		} catch(Exception e) {
+			
+		}
+	}
+	
 	private void loadInitialNetworks() {
 
 		try {

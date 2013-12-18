@@ -156,13 +156,17 @@ function Map() {
      				else {
      					var place = indexedPlaces[marker.placename];
      					
-     					var skipthese = ["marker", "links"];
-     					$.each(place, function(key, val) {
-     						if(!$.inArray(key, skipthese))
-     							return true;
-     						
-     						$("<div>").html(key+":"+val).appendTo(base);
-     					});
+     					if(place.website)
+     						$("<div>").text(place.website).appendTo(base);
+     					if(place.organization)
+     						$("<div>").text(place.organization.type).appendTo(base);
+     					
+     					if(place.memberSince)
+     						$("<div>").text(place.memberSince).appendTo(base);
+     					
+     					$("<div>").text(place.address).appendTo(base);
+     					$("<div>").text(place.city+" "+place.province+" "+place.postalCode).appendTo(base);
+     					
      				}
      				
          			console.log(base);
@@ -291,12 +295,16 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 	if(bounce) 
 		animation = google.maps.Animation.BOUNCE;
 		
+	var colour = "white";
+	if(place.organizationType)
+		colour = place.organizationType.colour;
 	
+	var icon = $.extend({}, this.circle, {fillColor: colour});
 	
 	var marker = new google.maps.Marker({
 		position: ll,
 		map: this.map,
-		icon: this.circle,
+		icon: icon,
 		zIndex: 100,
 		draggable: editMode,
 		animation: animation

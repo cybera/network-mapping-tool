@@ -1,5 +1,6 @@
 package ca.cybera.netmap.service;
 
+import java.io.InputStream;
 import java.util.List;
 
 import ca.cybera.netmap.model.Organization;
@@ -24,6 +25,8 @@ public interface OrganizationService {
 	public OrganizationType getType(String type);
 
 	public void deleteType(String uuid);
+
+	public void importKML(InputStream is) throws Exception;
 
 
 	
