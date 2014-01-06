@@ -373,10 +373,12 @@ Map.prototype.drawLink = function(link, from, to, type) {
 	var ll1 = new google.maps.LatLng(from.geom.coordinates[1], from.geom.coordinates[0]);
 	var ll2 = new google.maps.LatLng(to.geom.coordinates[1], to.geom.coordinates[0]);
 	
-	var options = $.extend({}, type, {
+	var options = {
 		path: [ll1, ll2],
-		map: this.map
-	});
+		map: this.map,
+		strokeColor: link.network.colour,
+		strokeWeight: link.connectionSpeed.lineThickness
+	};
     
     var pl = new google.maps.Polyline(options);
     
@@ -391,24 +393,39 @@ Map.prototype.drawLink = function(link, from, to, type) {
  			if(editMode) {
  				
  				var speedDiv = $("<div>", {style: 'display: inline-block; padding: 5px;'}).appendTo(base);
- 				
  				$("<label>", {text: 'Speed: '}).appendTo(speedDiv);
 	 			var select = $("<select>").appendTo(speedDiv);
 	 			$.each(indexedLinkTypes, function(idx, itm) {
 	 				var option = $("<option>", {value:itm.speed}).html(itm.speed);
 	 				if(link.connectionSpeed.speed == itm.connectionSpeed)
 	 					option.attr("selected", "selected");
-	 				
 	 				option.appendTo(select);
-	 				
-	 				
 	  			});
 
 	 			select.change(function() {
-	 				link.connectionSpeed.speed =$(this).val();
-	 				pl.setOptions(indexedLinkTypes[$(this).val()]);
+	 				var newSpeed = indexedLinkTypes[$(this).prop('selectedIndex')];
+	 				link.connectionSpeed = newSpeed;
+	 				pl.setOptions({strokeWeight: newSpeed.lineThickness});
 	 				saveNetworkConnection(link);
 	 			});
+
+ 				var networkDiv = $("<div>", {style: 'display: inline-block; padding: 5px;'}).appendTo(base);
+ 				$("<label>", {text: 'Network: '}).appendTo(networkDiv);
+	 			var select = $("<select>").appendTo(networkDiv);
+	 			$.each(networks, function(idx, itm) {
+	 				var option = $("<option>", {value:itm.name}).html(itm.name);
+	 				if(link.network.name == itm.name)
+	 					option.attr("selected", "selected");
+	 				option.appendTo(select);
+	  			});
+
+	 			select.change(function() {
+	 				var newNetwork = networks[$(this).prop('selectedIndex')];
+	 				link.network = newNetwork;
+	 				pl.setOptions({strokeColor: newNetwork.colour});
+	 				saveNetworkConnection(link);
+	 			});
+
 	 			
  			
 	 			$("<button>", {style: 'margin: 5px; padding: 0px;'}).html("Delete").click(function() {

@@ -117,6 +117,7 @@ function createLink(from, to, open) {
 	
 	var networkConnection = {
 			connectionSpeed: type,
+			network: networks[0],
 			orgStartUUID: f.uuid,
 			orgEndUUID: t.uuid			
 	};
@@ -464,25 +465,29 @@ $(document).ready(function() {
 	}
 
 		
-	$.getJSON('ns/organization', function(result) {
-		console.log('Organizations: ', result);
-		places = result;
-		loadPlaces(result);
-		setupTable();
+	var promises = [];	
 
-	});
+	promises.push($.getJSON('ns/networkConnection/speeds'));
+	promises.push($.getJSON('ns/networkConnection/networks'));
+	promises.push($.getJSON('ns/organization'));
+	promises.push($.getJSON('ns/networkConnection'));
 
-	
-	$.getJSON('ns/networkConnection', function(result) {
-		console.log('Network Connections: ', result);
-		links = result;
-		showLinks();
-	});
+	$.when.apply($, promises).done(function() {
+		console.log('Netmap Init Promises: ', arguments);
 		
-	
-	$.getJSON('ns/networkConnection/speeds', function(result) {
-		console.log('Connection Speeds: ', result);
-		indexedLinkTypes = result; 
+		indexedLinkTypes = arguments[0][0];
+		networks = arguments[1][0];
+		places = arguments[2][0];
+		links = arguments[3][0];
+		
+		console.log('Network Speeds: ', indexedLinkTypes);
+		console.log('Networks: ', networks);
+		console.log('Organizations: ', places);
+		console.log('Network Connections: ', links);
+		
+		loadPlaces(places);
+		setupTable();
+		showLinks();
 	});
 	
 })
