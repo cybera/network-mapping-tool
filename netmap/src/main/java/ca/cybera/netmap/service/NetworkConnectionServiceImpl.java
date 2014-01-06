@@ -105,4 +105,18 @@ public class NetworkConnectionServiceImpl implements NetworkConnectionService {
 		
 	}
 
+	@Override
+	public void deleteNetwork(String uuid) {
+		
+		entityManager.remove(getNetwork(uuid));
+		
+	}
+
+	@Override
+	public void deleteConnectionSpeed(String uuid) {
+
+		entityManager.remove(getConnectionSpeed(uuid));
+		
+	}
+
 }

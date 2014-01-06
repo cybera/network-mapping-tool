@@ -21,6 +21,8 @@ public interface NetworkConnectionService {
 	public Network save(Network network);
 
 	public List<Network> getNetworks();
+	
+	public void deleteNetwork(String uuid);
 
 	public Network getNetwork(String network);
 
@@ -29,5 +31,7 @@ public interface NetworkConnectionService {
 	public List<ConnectionSpeed> getConnectionSpeeds();
 
 	public ConnectionSpeed getConnectionSpeed(String speed);
+	
+	public void deleteConnectionSpeed(String uuid);
 
 }

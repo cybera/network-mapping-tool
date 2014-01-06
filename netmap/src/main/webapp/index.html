@@ -268,7 +268,32 @@ $(document).ready(function() {
 		}
 	});
 	setupOrgTypes();
+
 	
+	$("#networkDialog").dialog({
+		autoOpen: false,
+		title: 'Manage Networks',
+		width: 400,
+		height: 400,
+		buttons: {'Done': function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+	setupNetworks();
+
+	$("#speedDialog").dialog({
+		autoOpen: false,
+		title: 'Manage Connection Speeds',
+		width: 400,
+		height: 400,
+		buttons: {'Done': function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+	setupSpeeds();
+
 	
 	$("#fileinput").hide().fileReaderJS({
 			on: {
@@ -329,11 +354,18 @@ $(document).ready(function() {
 						else if(key =='orgDetails') {
 							showOrgDetails();
 						}
+						else if (key == 'networks') {
+							$('#networkDialog').dialog("open");
+						}
+						else if (key == 'speeds') {
+							$('#speedDialog').dialog("open");
+						}
 					},
 					
 					items: {'orgTypes': {name:'Organization Types'},
 							'orgDetails': {name:'User Organization Details'},
-							'networks': {name:'Networks'}
+							'networks': {name:'Networks'},
+							'speeds': {name:'Connection Speeds'}
 					}
 				};
 			}
@@ -682,7 +714,7 @@ function setupOrgTypes() {
 				orgTypesById[org.uuid] = org;
 				
 				var table = $("#orgTypeTable").jqGrid('addRowData', org.uuid, org, "first");
-				$("#orgTypeTable").jqGrid('editRow', orig.uuid, true, 'clientArray');
+				$("#orgTypeTable").jqGrid('editRow', org.uuid, true, 'clientArray');
 			});
 		});
 		
@@ -723,6 +755,48 @@ function mergeOrgType(orgType, callback) {
 	post('ns/organization/type', orgType, 'json', callback);
 }
 
+function mergeNetwork(network, callback) {
+	console.log("network:",network);
+	
+	post('ns/networkConnection/network', network, 'json', function(result) {
+		if (callback) callback(result);
+		$.getJSON('ns/networkConnection/networks', function(result) {
+			networks = result;
+		});
+
+	});
+	
+}
+
+function deleteNetwork(id, callback) {
+	deleteCall("ns/networkConnection/network/"+id, function(result) {	
+		if (callback) callback(result);
+		$.getJSON('ns/networkConnection/networks', function(result) {
+			networks = result;
+		});
+	});
+}
+
+function mergeSpeed(speed, callback) {
+	console.log("speed:",speed);
+	
+	post('ns/networkConnection/speed', speed, 'json', function(result) {
+		if (callback) callback(result);
+		$.getJSON('ns/networkConnection/speeds', function(result) {
+			indexedLinkTypes = result;
+		});
+	});
+}
+
+function deleteSpeed(id, callback) {
+	deleteCall("ns/networkConnection/speed/"+id, function(result) {	
+		if (callback) callback(result);
+		$.getJSON('ns/networkConnection/speeds', function(result) {
+			indexedLinkTypes = result;
+		});
+	});
+}
+
 
 function mergeOrganization(org, callback) {
 	var record = $.extend({},org);
@@ -740,8 +814,231 @@ function mergeOrganization(org, callback) {
 }
 
 
+function setupNetworks() {
+	$.getJSON("ns/networkConnection/networks", function(networks) {
+	
+	networksById = {};
+	networksByName = {};
+	
+	$.each(networks, function(idx, itm) {
+		networksById[itm.uuid] = itm;
+		networksByName[itm.name] = itm;
+	});
+	
+	var colNames = ["UUID","Network Name", "Colour"];
+	var colModel = [
+     {
+     	hidden: true,
+     	name: 'uuid',
+     	key: true
+     },
+	                {
+		editable: true, 
+		name: 'name', 
+		sortable: true
+	},
+	{
+		editable: true, 
+		name: 'colour', 
+		sortable: true,
+		formatter: colorFormatter,
+		edittype: 'custom',
+		editoptions: {
+			custom_element: function(value, options) {
+				console.log(value, options);
+				var $span = $(value);
+				
+				var input = $("<input>", {type: 'input', value: $span.css("background-color")}).colorpicker({
+					colorFormat: "RGB"
+				});
+				return input[0];
+				
+			},
+			custom_value: function(elem) {
+			 	var val = $(elem).val();
+			 	console.log("val: ", val);
+			 	return val;
+			}
+		}
+	}
+	];
+	
+	var networkLastSel;
+	var tableOptions = {
+			datatype: "local",
+			sortable: true,
+			colNames:colNames,
+			colModel:colModel,
+			shrinkToFit: true,
+			height: 175,
+			width: 400,
+			rowNum: networks.length,
+		   	rowList:[10,20,30],
+		   	scroll: true,
+		   	scrollrows: true,
+			onSelectRow: function(id, status, event){
+				//check if edit bailed
+				if(id && id!==networkLastSel){
+					$("#networkTable").jqGrid('restoreRow',networkLastSel);
+				}
+			},
+			ondblClickRow: function (id, ri, ci, e) {
+				//edit on double click
 
+				networkLastSel=id;
+				
+				$("#networkTable").jqGrid('editRow', id, {
+			    	url: 'clientArray',
+			    	keys: true,
+			    	aftersavefunc: function() {
+			    		console.log("id:",id);
+			    		mergeNetwork(networksById[id]);
+			    	}
+			    });    
+				
+				
+				
+			}
+			
+		};
+	
+	
+		var table = $("#networkTable").jqGrid(tableOptions).navGrid("#pagernav",{edit:false,add:false,del:false});
+		table[0].p.data = networks;
+		table.trigger('reloadGrid');
 
+		
+		$("#networkAddButton").click(function() {
+			mergeNetwork({name:"New Network", colour:"#000000"}, function(network) {
+				networksById[network.uuid] = network;
+				
+				var table = $("#networkTable").jqGrid('addRowData', network.uuid, network, "first");
+				$("#networkTable").jqGrid('editRow', network.uuid, true, 'clientArray');
+			});
+		});
+		
+		
+		$("#networkDeleteButton").click(function() {
+			var id = $("#networkTable").jqGrid("getGridParam", "selrow");
+			$.confirm("Do you want to delete "+networksById[id].name+"?", {
+				title: 'Confirm Delete',
+				buttons: {
+					"Yes": function() {
+						deleteNetwork(id, function() {
+							$("#networkTable").jqGrid('delRowData', id);
+						});
+						$(this).dialog("close");
+					},
+					"No": function() {
+						$(this).dialog("close");
+					}
+				}
+			});
+		});
+
+		
+	});
+}
+
+function setupSpeeds() {
+	$.getJSON("ns/networkConnection/speeds", function(speeds) {
+	
+	speedsById = {};
+	speedsByType = {};
+	
+	$.each(speeds, function(idx, itm) {
+		speedsById[itm.uuid] = itm;
+		speedsByType[itm.speed] = itm;
+	});
+	
+	var colNames = ["UUID","Connection Speed", "Line Thickness"];
+	var colModel = [
+     {
+     	hidden: true,
+     	name: 'uuid',
+     	key: true
+     },
+	                {
+		editable: true, 
+		name: 'speed', 
+		sortable: true
+	},
+	{
+		editable: true, 
+		name: 'lineThickness', 
+		sortable: true,
+	}
+	];
+	
+	var speedLastSel;
+	var tableOptions = {
+			datatype: "local",
+			sortable: true,
+			colNames:colNames,
+			colModel:colModel,
+			shrinkToFit: true,
+			height: 175,
+			width: 400,
+			rowNum: speeds.length,
+		   	rowList:[10,20,30],
+		   	scroll: true,
+		   	scrollrows: true,
+			onSelectRow: function(id, status, event){
+				//check if edit bailed
+				if(id && id!==speedLastSel){
+					$("#speedTable").jqGrid('restoreRow',speedLastSel);
+				}
+			},
+			ondblClickRow: function (id, ri, ci, e) {
+				//edit on double click
+
+				speedLastSel=id;
+				
+				$("#speedTable").jqGrid('editRow', id, {
+			    	url: 'clientArray',
+			    	keys: true,
+			    	aftersavefunc: function() {
+			    		console.log("id:",id);
+			    		mergeSpeed(speedsById[id]);
+			    	}
+			    });    
+			}
+		};
+	
+		var table = $("#speedTable").jqGrid(tableOptions).navGrid("#pagernav",{edit:false,add:false,del:false});
+		table[0].p.data = speeds;
+		table.trigger('reloadGrid');
+
+		
+		$("#speedAddButton").click(function() {
+			mergeSpeed({speed: 'New Speed', lineThickness: 0.0}, function(speed) {
+				speedsById[speed.uuid] = speed;
+				
+				var table = $("#speedTable").jqGrid('addRowData', speed.uuid, speed, "first");
+				$("#speedTable").jqGrid('editRow', speed.uuid, true, 'clientArray');
+			});
+		});
+		
+		
+		$("#speedDeleteButton").click(function() {
+			var id = $("#speedTable").jqGrid("getGridParam", "selrow");
+			$.confirm("Do you want to delete "+speedsById[id].speed+"?", {
+				title: 'Confirm Delete',
+				buttons: {
+					"Yes": function() {
+						deleteSpeed(id, function() {
+							$("#speedTable").jqGrid('delRowData', id);
+						});
+						$(this).dialog("close");
+					},
+					"No": function() {
+						$(this).dialog("close");
+					}
+				}
+			});
+		});
+	});
+}
 
 
 function showData(results) {
@@ -1121,12 +1418,31 @@ cursor: pointer;
  -->	 	
 	
 	<div id="orgTypeDialog">
-		<div id="orgTypeToolbar" style="margin-left:10px; height:25px; width:100%">
+		<div id="orgTypeToolbar" style="margin-left:10px; margin-bottom:10px; height:25px; width:100%">
 			<img title="Add" id="orgTypeAddButton" class="btn" src='images/add.png'>
 			<img title="Edit" id="orgTypeEditButton" class="btn" src='images/edit.png'>
 			<img title="Delete" id="orgTypeDeleteButton" class="btn" src='images/delete.png'>
 		</div>
 		<table id="orgTypeTable"></table>
+	</div>
+
+
+	<div id="networkDialog">
+		<div id="networkToolbar" style="margin-left:10px; margin-bottom:10px; height:25px; width:100%">
+			<img title="Add" id="networkAddButton" class="btn" src='images/add.png'>
+			<img title="Edit" id="networkEditButton" class="btn" src='images/edit.png'>
+			<img title="Delete" id="networkDeleteButton" class="btn" src='images/delete.png'>
+		</div>
+		<table id="networkTable"></table>
+	</div>
+	
+		<div id="speedDialog">
+		<div id="speedToolbar" style="margin-left:10px; margin-bottom:10px; height:25px; width:100%">
+			<img title="Add" id="speedAddButton" class="btn" src='images/add.png'>
+			<img title="Edit" id="speedEditButton" class="btn" src='images/edit.png'>
+			<img title="Delete" id="speedDeleteButton" class="btn" src='images/delete.png'>
+		</div>
+		<table id="speedTable"></table>
 	</div>
 	
 	

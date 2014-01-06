@@ -394,7 +394,7 @@ Map.prototype.drawLink = function(link, from, to, type) {
  				
  				var speedDiv = $("<div>", {style: 'display: inline-block; padding: 5px;'}).appendTo(base);
  				$("<label>", {text: 'Speed: '}).appendTo(speedDiv);
-	 			var select = $("<select>").appendTo(speedDiv);
+	 			var select = $("<select>", {id: 'speedSelect'}).appendTo(speedDiv);
 	 			$.each(indexedLinkTypes, function(idx, itm) {
 	 				var option = $("<option>", {value:itm.speed}).html(itm.speed);
 	 				if(link.connectionSpeed.speed == itm.connectionSpeed)
@@ -411,9 +411,9 @@ Map.prototype.drawLink = function(link, from, to, type) {
 
  				var networkDiv = $("<div>", {style: 'display: inline-block; padding: 5px;'}).appendTo(base);
  				$("<label>", {text: 'Network: '}).appendTo(networkDiv);
-	 			var select = $("<select>").appendTo(networkDiv);
+	 			var select = $("<select>", {id: 'networkSelect'}).appendTo(networkDiv);
 	 			$.each(networks, function(idx, itm) {
-	 				var option = $("<option>", {value:itm.name}).html(itm.name);
+	 				var option = $("<option>", {value:itm.uuid}).html(itm.name);
 	 				if(link.network.name == itm.name)
 	 					option.attr("selected", "selected");
 	 				option.appendTo(select);
@@ -491,7 +491,30 @@ Map.prototype.drawLink = function(link, from, to, type) {
 
     
     return pl;
-}
+};
+
+/*
+Map.prototype.updateSpeeds = function(speeds) {
+	$('#speedSelect').find('option').remove();
+	$.each(speeds, function(idx, itm) {
+			var option = $("<option>", {value:itm.speed}).html(itm.speed);
+			if(link.connectionSpeed.speed == itm.connectionSpeed)
+				option.attr("selected", "selected");
+			option.appendTo(select);
+	});
+};
+
+Map.prototype.updateNetworks = function(networks) {
+	$('#networkSelect').find('option').remove();
+	$.each(networks, function(idx, itm) {
+			var option = $("<option>", {value:itm.name}).html(itm.name);
+			if(link.connectionSpeed.speed == itm.connectionSpeed)
+				option.attr("selected", "selected");
+			option.appendTo(select);
+	});
+};
+*/
+
 
 /*
 var GmapsCubicBezier = function(lat1, long1, lat2, long2, lat3, long3, lat4, long4, resolution, map, click){

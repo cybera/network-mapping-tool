@@ -11,7 +11,6 @@ import ca.cybera.netmap.model.Organization;
 import ca.cybera.netmap.model.OrganizationType;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.WKTReader;
 
 @Service
@@ -93,7 +92,7 @@ public class NetmapLoader {
 	private void loadInitialConnectionSpeeds() {
 
 		try {
-			networkConnectionService.save(new ConnectionSpeed("A", 1.0));
+			networkConnectionService.save(new ConnectionSpeed("A", 0.5));
 		} catch (Exception e) {}
 
 		try {
@@ -101,15 +100,15 @@ public class NetmapLoader {
 		} catch (Exception e) {}
 
 		try {
-			networkConnectionService.save(new ConnectionSpeed("10 GbE", 1.0));
+			networkConnectionService.save(new ConnectionSpeed("10 GbE", 1.5));
 		} catch (Exception e) {}
 
 		try {
-			networkConnectionService.save(new ConnectionSpeed("1 GbE", 1.0));
+			networkConnectionService.save(new ConnectionSpeed("1 GbE", 2.0));
 		} catch (Exception e) {}
 
 		try {
-			networkConnectionService.save(new ConnectionSpeed("250 MbE", 1.0));
+			networkConnectionService.save(new ConnectionSpeed("250 MbE", 2.5));
 		} catch (Exception e) {}
 
 	

@@ -81,6 +81,15 @@ public class NetworkConnectionController extends BaseController {
 
 	}
 	
+	@RequestMapping(value = "network/{uuid}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	void deleteNetwork(@PathVariable("uuid") String uuid) throws Exception {
+
+		service.deleteNetwork(uuid);
+
+	}
+
+	
 	@RequestMapping(value = "/speed", method = RequestMethod.POST)
 	public @ResponseBody
 	ConnectionSpeed post(@RequestBody ConnectionSpeed speed) throws Exception {
@@ -96,4 +105,13 @@ public class NetworkConnectionController extends BaseController {
 		return service.getConnectionSpeeds();
 
 	}
+	
+	@RequestMapping(value = "speed/{uuid}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	void deleteSpeed(@PathVariable("uuid") String uuid) throws Exception {
+
+		service.deleteConnectionSpeed(uuid);
+
+	}
+
 }
