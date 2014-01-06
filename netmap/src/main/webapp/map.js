@@ -387,8 +387,9 @@ Map.prototype.drawLink = function(link, from, to, type) {
     var me = this;
  	google.maps.event.addListener(pl, 'click', function(e) {
  		console.log('Click On Link');
-			var base = $("<div>");
+			var base = $("<div>", {style: 'display: inline-block; padding: 5px; padding-bottom: 20px;'});
  			$("<div>").html("<strong>"+from.name+" -> "+to.name+"</strong>").appendTo(base);
+ 			$("<hr>").appendTo(base);
  			
  			if(editMode) {
  				
@@ -450,7 +451,9 @@ Map.prototype.drawLink = function(link, from, to, type) {
 	 			}).button().appendTo(base).wrap("<div>");
  			}
  			else {
- 				$("<div>").html(link.type).appendTo(base);
+ 				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px;'}).appendTo(base);
+ 				$("<div>").html("<B>Speed:</B> " + link.connectionSpeed.speed).appendTo(div);
+ 				$("<div>").html("<B>Network:</B> " + link.network.name).appendTo(div);
  			}
  			
  			console.log(base);
