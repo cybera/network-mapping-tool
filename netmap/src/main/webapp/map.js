@@ -275,7 +275,30 @@ Map.prototype.clearMarkers = function() {
 	$.each(this.markers, function(idx, itm) {
 		itm.setMap(null);
 	});
-}
+};
+
+Map.prototype.markerVisibility = function(visible, orgType) {
+	var me = this;
+	
+	$.each(this.markers, function(index, marker) {
+		if (marker.get("orgType") == orgType) {
+			if (visible) marker.setMap(me.map);
+			else marker.setMap(null);
+		}
+	});
+};
+
+Map.prototype.lineVisibility = function(visible, network) {
+	var me = this;
+	
+	$.each(this.lines, function(index, line) {
+		if (line.get("network") == network) {
+			if (visible) line.setMap(me.map);
+			else line.setMap(null);
+		}
+	});
+};
+
 
 Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCallback, dragEndCallback, bounce) {
 	var ll = new google.maps.LatLng(place.geom.coordinates[1], place.geom.coordinates[0]);
@@ -305,6 +328,9 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 		animation: animation
 		
 	});
+	
+	if (place.organizationType)
+		marker.set("orgType", place.organizationType.uuid);
 	
 	this.markers.push(marker);
 	
@@ -381,7 +407,7 @@ Map.prototype.drawLink = function(link, from, to, type) {
 	};
     
     var pl = new google.maps.Polyline(options);
-    
+    pl.set('network', link.network.uuid);
     this.lines.push(pl);
     
     var me = this;

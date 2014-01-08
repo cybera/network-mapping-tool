@@ -520,9 +520,42 @@ $(document).ready(function() {
 		loadPlaces(places);
 		setupTable();
 		showLinks();
+		
+		createMapController();
 	});
 	
 })
+
+function createMapController() {
+	var me = this;
+	
+	$.each(organizationTypes, function(index, type) {
+		var checkbox = $('<input>').attr({ type: 'checkbox', id: type.uuid, checked: true});
+		var style = 'color: ' + type.colour + ';';
+		$("#mapOrgTypes").append($('<div>', {style: 'margin:3px;'})).append($('<label>', {style : style}).html(type.type).prepend(checkbox));
+		
+		checkbox.change(function() {
+			var selected = this.checked;
+			var id = $(this).attr('id');
+			me.map.markerVisibility(selected, id);
+		});
+	})
+
+	
+	$.each(networks, function(index, network) {
+		var checkbox = $('<input>').attr({ type: 'checkbox', id: network.uuid, checked: true});
+		var style = 'color: ' + network.colour + ';';
+		$("#mapNetworks").append($('<div>', {style: 'margin:3px;'})).append($('<label>', {style: style}).html(network.name).prepend(checkbox));
+
+		checkbox.change(function() {
+			var selected = this.checked;
+			var id = $(this).attr('id');
+			me.map.lineVisibility(selected, id);
+		});
+	})
+	
+	$("#mapController").draggable();
+}
 
 function showOrgDetails() {
 
@@ -1352,6 +1385,7 @@ cursor: pointer;
     padding: 0.4em 1em .4em 2.3em;
 }
 
+
 </style>
 </head>
   
@@ -1436,7 +1470,7 @@ cursor: pointer;
 		<table id="networkTable"></table>
 	</div>
 	
-		<div id="speedDialog">
+	<div id="speedDialog">
 		<div id="speedToolbar" style="margin-left:10px; margin-bottom:10px; height:25px; width:100%">
 			<img title="Add" id="speedAddButton" class="btn" src='images/add.png'>
 			<img title="Edit" id="speedEditButton" class="btn" src='images/edit.png'>
@@ -1445,6 +1479,18 @@ cursor: pointer;
 		<table id="speedTable"></table>
 	</div>
 	
+	<div id="mapController" class="mapController">
+		
+		<div style="padding:5px;">
+			<strong>Organization Types</strong>
+			<div id="mapOrgTypes"></div>
+		</div>
+				
+		<div style="padding:5px; padding-top: 10px;">
+			<strong>Networks</strong>
+			<div id="mapNetworks"></div>
+		</div>
+	</div>
 	
 </body>
 
