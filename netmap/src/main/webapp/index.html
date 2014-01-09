@@ -529,6 +529,10 @@ $(document).ready(function() {
 function createMapController() {
 	var me = this;
 	
+	console.log('In createMapController: ');
+	console.log('    Org Types: ' + JSON.stringify(organizationTypes, null, 2));
+	console.log('    Networks: ' + JSON.stringify(networks, null, 2));
+	
 	$.each(organizationTypes, function(index, type) {
 		var checkbox = $('<input>').attr({ type: 'checkbox', id: type.uuid, checked: true});
 		var style = 'color: ' + type.colour + ';';
