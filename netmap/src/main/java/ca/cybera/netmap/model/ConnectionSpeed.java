@@ -23,7 +23,7 @@ public class ConnectionSpeed {
 	@Column(name = "speed", unique = true, nullable = false)
 	private String speed;
 
-	@Column(name = "line_thickness", unique = true, nullable = false)
+	@Column(name = "line_thickness",  nullable = false)
 	private Double lineThickness;
 
 	public ConnectionSpeed() {

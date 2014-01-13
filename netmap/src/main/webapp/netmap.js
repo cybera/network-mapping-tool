@@ -93,3 +93,114 @@ function getError(request) {
 
 	return message;
 }
+
+function geocodePlaces(places) {
+	if(places[0].latitude == undefined) {
+		var geocoder = new google.maps.Geocoder();
+		var completed = 0;
+		
+		var deferred = $.Deferred();
+		$.each(places, function(idx, place) {
+			var locref = place.Address+" "+place.City+" "+place.Province+"  "+place.Pcode;
+			setTimeout(function() {
+			geocoder.geocode({address: locref}, function(results, status) {
+				completed++;
+				console.log('geocode: ',locref+" -> ",status);
+				if(status == google.maps.GeocoderStatus.OK) {
+					console.log("results: ",results);
+					console.log("latitude: ",results[0].geometry.location.lat());
+					place.coords = {};
+					place.coords.latitude = results[0].geometry.location.lat();
+					place.coords.longitude = results[0].geometry.location.lng();
+				}
+				/*
+				else {
+					console.log("error geocoding: "+locref);
+				}
+				*/
+				console.log(completed+" -> "+places.length);
+				if(completed == places.length)
+					deferred.resolve(places);
+			});
+			}, idx*2000);
+		});
+		
+		return deferred.promise();
+		
+	}
+	
+	return "";
+	
+}
+
+function createCSV(data) {
+	var str ='';
+	//quick & dirty create all values as quoted
+	$.each(data, function(idx, itm) {
+		var first = true;
+		$.each(itm, function(key, value) {
+			(first)? first=false : str+=",";
+			
+			str += '"'+value+'"';
+		})
+		str+="\n";
+	});
+
+	return str;
+}
+
+function outputTable() {
+	var model = $("#placeTable").jqGrid('getGridParam', 'colModel');
+	var data = $("#placeTable")[0].p.data.slice(0);
+
+	//remove internals 
+	$.each(data, function(idx, itm) {
+		delete itm.links;
+		delete itm.marker;
+	});
+	
+	var placecsv = createCSV(data);
+	var linkcsv = createCSV(links);
+	
+ 	var full = {
+ 			placeList: data,
+ 			linkList: links,
+ 			linkTypes: indexedLinkTypes,
+ 			mapStyle: map.style
+ 	};
+ 	console.log("full:",full);
+ 	
+ 	var jsonoutput = JSON.stringify(full, null, 2);
+ 	
+ 	$("#placeCSV").val(placecsv);
+ 	$("#linkCSV").val(linkcsv);
+ 	$("#jsonoutput").val(jsonoutput);
+ 	
+ 	$("#placecsvdownload").attr("href", "data:text/csv;charset=utf-8,"+escape(placecsv));
+ 	$("#linkcsvdownload").attr("href", "data:text/csv;charset=utf-8,"+escape(linkcsv));
+
+ 	$("#jsondownload").attr("href", "data:text/csv;charset=utf-8,"+escape(jsonoutput));
+ 	
+	$("#outputtabs").dialog("open");
+}
+
+
+function loadPlaces(places) {
+	indexedPlaces={};
+
+	$.each(places, function(idx, place) {
+		//place.name = place['Institutions - Eng Name'];
+	
+		if(place.geom.coordinates[0]) {
+			place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, handleDragEnd);
+		}
+		
+		if(place.organizationType) {
+			place.organizationType.toString = function() {
+				return this.type;
+			}
+		}
+		
+		indexedPlaces[place.uuid] = place;
+	});
+}

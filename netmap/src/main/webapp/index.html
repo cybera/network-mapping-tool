@@ -8,30 +8,33 @@
 	  <script type='text/javascript' src='http://code.jquery.com/jquery-1.9.1.js'></script>
 	  <script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 
-		<script type="text/javascript" src="js/jquery.toastmessage.js"></script>
-	<link type="text/css" href="css/jquery.toastmessage.css" rel="stylesheet" />
+	  <script type="text/javascript" src="js/jquery.ui.touch-punch.js"></script>
 
-	  
-	  <script type="text/javascript" src="js/jquery.csv-0.71.js"></script>
+	  <script type="text/javascript" src="js/jquery.toastmessage.js"></script>
+	  <link type="text/css" href="css/jquery.toastmessage.css" rel="stylesheet" />
+
+	  	  <script type="text/javascript" src="js/jquery.csv-0.71.js"></script>
 	  <script type="text/javascript" src="js/oms.min.js"></script>
 	  <script type="text/javascript" src="js/jquery.alerts.js"></script>
 	  <script type="text/javascript" src="js/jquery.jqGrid.src.js"></script>
 	  <script type="text/javascript" src="js/jquery.contextMenu.js"></script>
+
+	  <script type="text/javascript" src="netmap.editPopup.js"></script>
+
 	  <link rel="stylesheet" href="css/jquery.contextMenu.css" type="text/css" />
 	  
 	  <script type="text/javascript" src="js/jquery.colorpicker.js"></script>
 	  <link rel="stylesheet" href="css/jquery.colorpicker.css" type="text/css" />
-	  
 
-
-
-	  		<script type="text/javascript" src="js/filereader.js"></script>
+  		<script type="text/javascript" src="js/filereader.js"></script>
 		<script type="text/javascript" src="js/uuid.js"></script>
 		
 
 	  <script type="text/javascript" src="map.js"></script>
 	  <script type="text/javascript" src="netmap.js"></script>
 	  
+	  <script type="text/javascript" src="manage.js"></script>
+	  	  
 	  <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
 	 <link rel="stylesheet" href="css/ui.jqgrid.css" type="text/css" />
 
@@ -69,46 +72,6 @@ function getCSV(url, callback) {
 }
 
 
-
-function geocodePlaces(places) {
-	if(places[0].latitude == undefined) {
-		var geocoder = new google.maps.Geocoder();
-		var completed = 0;
-		
-		var deferred = $.Deferred();
-		$.each(places, function(idx, place) {
-			var locref = place.Address+" "+place.City+" "+place.Province+"  "+place.Pcode;
-			setTimeout(function() {
-			geocoder.geocode({address: locref}, function(results, status) {
-				completed++;
-				console.log('geocode: ',locref+" -> ",status);
-				if(status == google.maps.GeocoderStatus.OK) {
-					console.log("results: ",results);
-					console.log("latitude: ",results[0].geometry.location.lat());
-					place.coords = {};
-					place.coords.latitude = results[0].geometry.location.lat();
-					place.coords.longitude = results[0].geometry.location.lng();
-				}
-				/*
-				else {
-					console.log("error geocoding: "+locref);
-				}
-				*/
-				console.log(completed+" -> "+places.length);
-				if(completed == places.length)
-					deferred.resolve(places);
-			});
-			}, idx*2000);
-		});
-		
-		return deferred.promise();
-		
-	}
-	
-	return "";
-	
-}
-
 function createLink(from, to, open) {
 	var f = indexedPlaces[from];
 	var t = indexedPlaces[to];
@@ -129,77 +92,6 @@ function createLink(from, to, open) {
 	});
 }
 
-function createCSV(data) {
-	var str ='';
-	//quick & dirty create all values as quoted
-	$.each(data, function(idx, itm) {
-		var first = true;
-		$.each(itm, function(key, value) {
-			(first)? first=false : str+=",";
-			
-			str += '"'+value+'"';
-		})
-		str+="\n";
-	});
-
-	return str;
-}
-
-function outputTable() {
-	var model = $("#placeTable").jqGrid('getGridParam', 'colModel');
-	var data = $("#placeTable")[0].p.data.slice(0);
-
-	//remove internals 
-	$.each(data, function(idx, itm) {
-		delete itm.links;
-		delete itm.marker;
-	});
-	
-	var placecsv = createCSV(data);
-	var linkcsv = createCSV(links);
-	
- 	var full = {
- 			placeList: data,
- 			linkList: links,
- 			linkTypes: indexedLinkTypes,
- 			mapStyle: map.style
- 	};
- 	console.log("full:",full);
- 	
- 	var jsonoutput = JSON.stringify(full, null, 2);
- 	
- 	$("#placeCSV").val(placecsv);
- 	$("#linkCSV").val(linkcsv);
- 	$("#jsonoutput").val(jsonoutput);
- 	
- 	$("#placecsvdownload").attr("href", "data:text/csv;charset=utf-8,"+escape(placecsv));
- 	$("#linkcsvdownload").attr("href", "data:text/csv;charset=utf-8,"+escape(linkcsv));
-
- 	$("#jsondownload").attr("href", "data:text/csv;charset=utf-8,"+escape(jsonoutput));
- 	
-	$("#outputtabs").dialog("open");
-}
-
-
-function loadPlaces(places) {
-	indexedPlaces={};
-
-	$.each(places, function(idx, place) {
-		//place.name = place['Institutions - Eng Name'];
-	
-		if(place.geom.coordinates[0]) {
-			place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, handleDragEnd);
-		}
-		
-		if(place.organizationType) {
-			place.organizationType.toString = function() {
-				return this.type;
-			}
-		}
-		
-		indexedPlaces[place.uuid] = place;
-	});
-}
 
 function getFirstProperty(obj) {
 	return obj[Object.keys(obj)[0]];
@@ -214,7 +106,6 @@ function handleDragEnd(place) {
 	console.log("location update, merge it:",place);
 	mergeOrganization(place);
 }
-
 
 function handleSelectPlace(id) {
 	$("#placeTable").jqGrid('setSelection', id);	
@@ -248,54 +139,42 @@ function doresize() {
 
 $(document).ready(function() {
 	editMode = false;
-	
-	
 	if(querystring("mode") == "editMode")
 		editMode = true;
-	
-	
-	console.log("editmode: ", editMode);
+		console.log("editmode: ", editMode);
+
 	var locations;
+	
+	
+	//setup map
+	map = new Map();
+	$(document).keyup(function(e) {
+		//pass escape thru to allow map to stop edit operations
+		  if (e.keyCode == 27) { 
+			  map.notifyEscape();
+		  }
+	});	
+
+	
 		
-	$("#orgTypeDialog").dialog({
-		autoOpen: false,
-		title: 'Manage Organization Types',
-		width: 400,
-		height: 400,
-		buttons: {'Done': function() {
-				$(this).dialog("close");
-			}
-		}
-	});
-	setupOrgTypes();
-
+			//links = [{start: 0, end: 37, type:'10G'},
+	//	         {start: 0, end: 5, type:'A'}];
+		
+		//resize components with window/split pane change
+	$(window).bind('resize', function() {
+		doresize();
+	}).trigger('resize');
 	
-	$("#networkDialog").dialog({
-		autoOpen: false,
-		title: 'Manage Networks',
-		width: 400,
-		height: 400,
-		buttons: {'Done': function() {
-				$(this).dialog("close");
-			}
-		}
+	$("#bottom").resizable({
+		handles: "n"		
+	}).resize(function(event) {
+		doresize();	
+		return false;
 	});
-	setupNetworks();
-
-	$("#speedDialog").dialog({
-		autoOpen: false,
-		title: 'Manage Connection Speeds',
-		width: 400,
-		height: 400,
-		buttons: {'Done': function() {
-				$(this).dialog("close");
-			}
-		}
-	});
-	setupSpeeds();
-
+		
+		//toolbar
 	
-	$("#fileinput").hide().fileReaderJS({
+		$("#fileinput").hide().fileReaderJS({
 			on: {
 				load: function(e, file) {
 					console.log("****************************** FILE: ", file);
@@ -312,64 +191,6 @@ $(document).ready(function() {
 			}
 	});
 
-	//setup map
-	map = new Map();
-
-	
-	$(document).keyup(function(e) {
-		//pass escape thru to allow map to stop edit operations
-		  if (e.keyCode == 27) { 
-			  map.notifyEscape();
-		  }
-	});	
-
-	
-		
-			//links = [{start: 0, end: 37, type:'10G'},
-	//	         {start: 0, end: 5, type:'A'}];
-		
-		//resize components with window/split pane change
-		$(window).bind('resize', function() {
-			doresize();
-		}).trigger('resize');
-		
-		$("#bottom").resizable({
-			handles: "n"		
-		}).resize(function(event) {
-			doresize();	
-			return false;
-		});
-		
-		//toolbar
-		
-		$.contextMenu({
-			selector: "#settingsButton",
-			trigger: 'left',
-			build: function($trigger, e) {
-				return {
-					callback: function(key, options) {
-						if(key == 'orgTypes') {
-							$("#orgTypeDialog").dialog("open");
-						}
-						else if(key =='orgDetails') {
-							showOrgDetails();
-						}
-						else if (key == 'networks') {
-							$('#networkDialog').dialog("open");
-						}
-						else if (key == 'speeds') {
-							$('#speedDialog').dialog("open");
-						}
-					},
-					
-					items: {'orgTypes': {name:'Organization Types'},
-							'orgDetails': {name:'User Organization Details'},
-							'networks': {name:'Networks'},
-							'speeds': {name:'Connection Speeds'}
-					}
-				};
-			}
-		});
 		
 		$("#openButton").click(function() {
 			$("#fileinput").click();
@@ -386,31 +207,19 @@ $(document).ready(function() {
  	 		$("#linkTypeDialog").dialog("open");
  		});
  		
- 		$("#mapStyleButton").click(function() {
- 			$("#mapstyle").html(JSON.stringify(map.mapStyles, null, 2));
- 	 		$("#mapStyleDialog").dialog("open");
- 		});
  		
- 		$("#mapStyleDialog").dialog({
+ 		$("#mapStyleChooser").dialog({
  			autoOpen: false,
  			modal: true,
- 			width: 600,
+ 			title: "Choose Map Style",
+ 			width: 'auto',
  			 buttons: {
- 		        "Update Style": function() {
- 		        	try {
- 						var style = JSON.parse($("#mapstyle").val());
- 						console.log(style);
- 						map.map.setOptions({styles: style});
- 					} catch(e) {
- 						alert("Unable to update style: JSON failed to parse");
- 					}
+ 		        "Done": function() {
  				    $( this ).dialog( "close" );
- 		        },
- 		        Cancel: function() {
- 		          $( this ).dialog( "close" );
  		        }
  		      }
  		});
+ 		
  		$("#linkTypeDialog").dialog({
  			autoOpen: false,
  			modal: true,
@@ -434,6 +243,11 @@ $(document).ready(function() {
  		
 		$("#addButton").click(function() {
 			addRow();
+		});
+		$("#editButton").click(function() {
+			var row = $("#placeTable").jqGrid("getGridParam", "selrow");
+			console.log("row: ",row);
+			editRow(row);
 		});
 		$("#deleteButton").click(function() {
 			var row = $("#placeTable").jqGrid("getGridParam", "selrow");
@@ -558,7 +372,32 @@ function createMapController() {
 		});
 	})
 	
+	
+	
 	$("#mapController").draggable();
+	
+	$("#mapStyleSelect").change(function() {
+		var select = $(this);
+		var style = JSON.parse(select.find('[value="'+select.val()+'"]').data("mapstyle"));
+		map.map.setOptions({styles: style});
+		
+	});
+	
+	$("#chooseMapStyleButton").button().click(function() {
+		$.getJSON("ns/mapStyles", function(result) {
+			
+	
+			var select = $("#mapStyleSelect");
+			select.empty();
+			$.each(result, function(idx, itm) {
+				var op = $("<option>", {value:itm.name}).html(itm.name).appendTo(select);
+				op.data("mapstyle", itm.style);
+			});
+			
+			$("#mapStyleChooser").dialog("open");
+		});
+		
+	});
 }
 
 function showOrgDetails() {
@@ -651,189 +490,9 @@ function colorFormatter(cellvalue, options, rowObject) {
 	return "<span style='display: inline-block; width:20px; height:20px; background-color: "+cellvalue+"'/>";
 }
 
-function setupOrgTypes() {
-	$.getJSON("ns/organization/types", function(types) {
-	organizationTypes = types;
-	
-	orgTypesById = {};
-	orgTypesByType = {};
-	$.each(organizationTypes, function(idx, itm) {
-		orgTypesById[itm.uuid] = itm;
-		orgTypesByType[itm.type] = itm;
-	});
-	
-	var colNames = ["UUID","Organization Type", "Colour"];
-	var colModel = [
-     {
-     	hidden: true,
-     	name: 'uuid',
-     	key: true
-     },
-	                {
-		editable: true, 
-		name: 'type', 
-		sortable: true
-	},
-	{
-		editable: true, 
-		name: 'colour', 
-		sortable: true,
-		formatter: colorFormatter,
-		edittype: 'custom',
-		editoptions: {
-			custom_element: function(value, options) {
-				console.log(value, options);
-				var $span = $(value);
-				
-				var input = $("<input>", {type: 'input', value: $span.css("background-color")}).colorpicker({
-					colorFormat: "RGB"
-				});
-				return input[0];
-				
-			},
-			custom_value: function(elem) {
-			 	var val = $(elem).val();
-			 	console.log("val: ", val);
-			 	return val;
-			}
-		}
-	}
-	];
-	
-	var orgTypeLastSel;
-	var tableOptions = {
-			datatype: "local",
-			sortable: true,
-			colNames:colNames,
-			colModel:colModel,
-			shrinkToFit: true,
-			height: 175,
-			width: 400,
-			rowNum: types.length,
-		   	rowList:[10,20,30],
-		   	scroll: true,
-		   	scrollrows: true,
-//		   	pager: '#pagernav',
-			onSelectRow: function(id, status, event){
-				//check if edit bailed
-				if(id && id!==orgTypeLastSel){
-					$("#orgTypeTable").jqGrid('restoreRow',orgTypeLastSel);
-				}
-			},
-			ondblClickRow: function (id, ri, ci, e) {
-				//edit on double click
-
-				orgTypeLastSel=id;
-				
-				$("#orgTypeTable").jqGrid('editRow', id, {
-			    	url: 'clientArray',
-			    	keys: true,
-			    	aftersavefunc: function() {
-			    		console.log("id:",id);
-			    		mergeOrgType(orgTypesById[id]);
-			    	}
-			    });    
-				
-				
-				
-			}
-			
-		};
-	
-	
-		var table = $("#orgTypeTable").jqGrid(tableOptions).navGrid("#pagernav",{edit:false,add:false,del:false});
-		table[0].p.data = types;
-		table.trigger('reloadGrid');
-
-		
-		$("#orgTypeAddButton").click(function() {
-			mergeOrgType({colour:"black"}, function(org) {
-				orgTypesById[org.uuid] = org;
-				
-				var table = $("#orgTypeTable").jqGrid('addRowData', org.uuid, org, "first");
-				$("#orgTypeTable").jqGrid('editRow', org.uuid, true, 'clientArray');
-			});
-		});
-		
-		
-		$("#orgTypeDeleteButton").click(function() {
-			var id = $("#orgTypeTable").jqGrid("getGridParam", "selrow");
-			$.confirm("Do you want to delete "+orgTypesById[id].type+"?", {
-				title: 'Confirm Delete',
-				buttons: {
-					"Yes": function() {
-						deleteOrgType(id, function() {
-							$("#orgTypeTable").jqGrid('delRowData', id);
-						});
-						$(this).dialog("close");
-					},
-					"No": function() {
-						$(this).dialog("close");
-					}
-				}
-			});
-		});
-
-		
-	});
-}
-
 function deleteOrganization(id, callback) {
 	deleteCall("ns/organization/"+id, callback);	
 }
-
-function deleteOrgType(id, callback) {
-	deleteCall("ns/organization/type/"+id, callback);	
-}
-
-function mergeOrgType(orgType, callback) {
-	console.log("orgType:",orgType);
-	
-	post('ns/organization/type', orgType, 'json', callback);
-}
-
-function mergeNetwork(network, callback) {
-	console.log("network:",network);
-	
-	post('ns/networkConnection/network', network, 'json', function(result) {
-		if (callback) callback(result);
-		$.getJSON('ns/networkConnection/networks', function(result) {
-			networks = result;
-		});
-
-	});
-	
-}
-
-function deleteNetwork(id, callback) {
-	deleteCall("ns/networkConnection/network/"+id, function(result) {	
-		if (callback) callback(result);
-		$.getJSON('ns/networkConnection/networks', function(result) {
-			networks = result;
-		});
-	});
-}
-
-function mergeSpeed(speed, callback) {
-	console.log("speed:",speed);
-	
-	post('ns/networkConnection/speed', speed, 'json', function(result) {
-		if (callback) callback(result);
-		$.getJSON('ns/networkConnection/speeds', function(result) {
-			indexedLinkTypes = result;
-		});
-	});
-}
-
-function deleteSpeed(id, callback) {
-	deleteCall("ns/networkConnection/speed/"+id, function(result) {	
-		if (callback) callback(result);
-		$.getJSON('ns/networkConnection/speeds', function(result) {
-			indexedLinkTypes = result;
-		});
-	});
-}
-
 
 function mergeOrganization(org, callback) {
 	var record = $.extend({},org);
@@ -842,241 +501,10 @@ function mergeOrganization(org, callback) {
 	delete record.links;
 	delete record.latitude;
 	delete record.longitude;
-
+	delete record.id;
 
 	post('ns/organization', record, 'json', callback);
-	
-	
-	
 }
-
-
-function setupNetworks() {
-	$.getJSON("ns/networkConnection/networks", function(networks) {
-	
-	networksById = {};
-	networksByName = {};
-	
-	$.each(networks, function(idx, itm) {
-		networksById[itm.uuid] = itm;
-		networksByName[itm.name] = itm;
-	});
-	
-	var colNames = ["UUID","Network Name", "Colour"];
-	var colModel = [
-     {
-     	hidden: true,
-     	name: 'uuid',
-     	key: true
-     },
-	                {
-		editable: true, 
-		name: 'name', 
-		sortable: true
-	},
-	{
-		editable: true, 
-		name: 'colour', 
-		sortable: true,
-		formatter: colorFormatter,
-		edittype: 'custom',
-		editoptions: {
-			custom_element: function(value, options) {
-				console.log(value, options);
-				var $span = $(value);
-				
-				var input = $("<input>", {type: 'input', value: $span.css("background-color")}).colorpicker({
-					colorFormat: "RGB"
-				});
-				return input[0];
-				
-			},
-			custom_value: function(elem) {
-			 	var val = $(elem).val();
-			 	console.log("val: ", val);
-			 	return val;
-			}
-		}
-	}
-	];
-	
-	var networkLastSel;
-	var tableOptions = {
-			datatype: "local",
-			sortable: true,
-			colNames:colNames,
-			colModel:colModel,
-			shrinkToFit: true,
-			height: 175,
-			width: 400,
-			rowNum: networks.length,
-		   	rowList:[10,20,30],
-		   	scroll: true,
-		   	scrollrows: true,
-			onSelectRow: function(id, status, event){
-				//check if edit bailed
-				if(id && id!==networkLastSel){
-					$("#networkTable").jqGrid('restoreRow',networkLastSel);
-				}
-			},
-			ondblClickRow: function (id, ri, ci, e) {
-				//edit on double click
-
-				networkLastSel=id;
-				
-				$("#networkTable").jqGrid('editRow', id, {
-			    	url: 'clientArray',
-			    	keys: true,
-			    	aftersavefunc: function() {
-			    		console.log("id:",id);
-			    		mergeNetwork(networksById[id]);
-			    	}
-			    });    
-				
-				
-				
-			}
-			
-		};
-	
-	
-		var table = $("#networkTable").jqGrid(tableOptions).navGrid("#pagernav",{edit:false,add:false,del:false});
-		table[0].p.data = networks;
-		table.trigger('reloadGrid');
-
-		
-		$("#networkAddButton").click(function() {
-			mergeNetwork({name:"New Network", colour:"#000000"}, function(network) {
-				networksById[network.uuid] = network;
-				
-				var table = $("#networkTable").jqGrid('addRowData', network.uuid, network, "first");
-				$("#networkTable").jqGrid('editRow', network.uuid, true, 'clientArray');
-			});
-		});
-		
-		
-		$("#networkDeleteButton").click(function() {
-			var id = $("#networkTable").jqGrid("getGridParam", "selrow");
-			$.confirm("Do you want to delete "+networksById[id].name+"?", {
-				title: 'Confirm Delete',
-				buttons: {
-					"Yes": function() {
-						deleteNetwork(id, function() {
-							$("#networkTable").jqGrid('delRowData', id);
-						});
-						$(this).dialog("close");
-					},
-					"No": function() {
-						$(this).dialog("close");
-					}
-				}
-			});
-		});
-
-		
-	});
-}
-
-function setupSpeeds() {
-	$.getJSON("ns/networkConnection/speeds", function(speeds) {
-	
-	speedsById = {};
-	speedsByType = {};
-	
-	$.each(speeds, function(idx, itm) {
-		speedsById[itm.uuid] = itm;
-		speedsByType[itm.speed] = itm;
-	});
-	
-	var colNames = ["UUID","Connection Speed", "Line Thickness"];
-	var colModel = [
-     {
-     	hidden: true,
-     	name: 'uuid',
-     	key: true
-     },
-	                {
-		editable: true, 
-		name: 'speed', 
-		sortable: true
-	},
-	{
-		editable: true, 
-		name: 'lineThickness', 
-		sortable: true,
-	}
-	];
-	
-	var speedLastSel;
-	var tableOptions = {
-			datatype: "local",
-			sortable: true,
-			colNames:colNames,
-			colModel:colModel,
-			shrinkToFit: true,
-			height: 175,
-			width: 400,
-			rowNum: speeds.length,
-		   	rowList:[10,20,30],
-		   	scroll: true,
-		   	scrollrows: true,
-			onSelectRow: function(id, status, event){
-				//check if edit bailed
-				if(id && id!==speedLastSel){
-					$("#speedTable").jqGrid('restoreRow',speedLastSel);
-				}
-			},
-			ondblClickRow: function (id, ri, ci, e) {
-				//edit on double click
-
-				speedLastSel=id;
-				
-				$("#speedTable").jqGrid('editRow', id, {
-			    	url: 'clientArray',
-			    	keys: true,
-			    	aftersavefunc: function() {
-			    		console.log("id:",id);
-			    		mergeSpeed(speedsById[id]);
-			    	}
-			    });    
-			}
-		};
-	
-		var table = $("#speedTable").jqGrid(tableOptions).navGrid("#pagernav",{edit:false,add:false,del:false});
-		table[0].p.data = speeds;
-		table.trigger('reloadGrid');
-
-		
-		$("#speedAddButton").click(function() {
-			mergeSpeed({speed: 'New Speed', lineThickness: 0.0}, function(speed) {
-				speedsById[speed.uuid] = speed;
-				
-				var table = $("#speedTable").jqGrid('addRowData', speed.uuid, speed, "first");
-				$("#speedTable").jqGrid('editRow', speed.uuid, true, 'clientArray');
-			});
-		});
-		
-		
-		$("#speedDeleteButton").click(function() {
-			var id = $("#speedTable").jqGrid("getGridParam", "selrow");
-			$.confirm("Do you want to delete "+speedsById[id].speed+"?", {
-				title: 'Confirm Delete',
-				buttons: {
-					"Yes": function() {
-						deleteSpeed(id, function() {
-							$("#speedTable").jqGrid('delRowData', id);
-						});
-						$(this).dialog("close");
-					},
-					"No": function() {
-						$(this).dialog("close");
-					}
-				}
-			});
-		});
-	});
-}
-
 
 function showData(results) {
 	map.clearOverlays();
@@ -1184,6 +612,12 @@ function setupTable() {
 	console.log("colModel:",colModel);
 	
 	tableOptions = {
+			
+			grouping:true, 
+			  groupingView : { 
+			     groupField : ['province'],
+			     groupDataSorted : true 
+			  }, 
 			datatype: "local",
 			sortable: true,
 			colNames:colNames,
@@ -1283,6 +717,7 @@ function setupTable() {
 }
 
 
+
 function deleteRow(id) {
 	$.confirm("Do you want to delete "+indexedPlaces[id].name+"?", {
 		title: 'Confirm Delete',
@@ -1304,6 +739,7 @@ function deleteRow(id) {
 }
 
 function editRow(id) {
+	console.log("in editRow...");
 	$("#placeTable").jqGrid('editRow', id, {
     	url: 'clientArray',
     	keys: true,
@@ -1322,20 +758,18 @@ function addRow() {
 	var center = map.map.getCenter();
 	
 	mergeOrganization({
-		geom: {type: 'Point', coordinates: [center.lng(), center.lat()]}
+		geom: {type: 'Point', coordinates: [center.lng(), center.lat()]},
+		organizationType: organizationTypes[0]
 	}, function(place) {
 		var table = $("#placeTable").jqGrid('addRowData', place.uuid, place, "first");
 
-		
-		mergeOrganization(place);
-		
 		//keep index up to date, note jqgrid does an extend, so we need to get the reference from our linked array.
 		place = places[places.length-1];
-		indexedPlaces[id] = place;
+		indexedPlaces[place.uuid] = place;
 		
 		place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, handleDragEnd, true);
 
-	    $("#placeTable").jqGrid('editRow', id, true, 'clientArray');
+		editRow(place.uuid);
 	});
 	
 }
@@ -1400,11 +834,11 @@ cursor: pointer;
 		<div id="toolbar" style="margin-left:10px; height:25px; width:100%">
 			<img title="Settings" id="settingsButton" class="btn" style="float:right; margin-right:20px;"src='images/settings.png'>
 			<img title="Import KML" id="openButton" class="btn" src='images/open.png'>
-			<img title="Add Place" id="addButton" class="btn" src='images/add.png'>
-			<img title="Delete Place" id="deleteButton" class="btn" src='images/delete.png'>
+			<img title="Add Organization" id="addButton" class="btn" src='images/add.png'>
+			<img title="Edit Organization" id="editButton" class="btn" src='images/edit.png'>
+			<img title="Delete Organization" id="deleteButton" class="btn" src='images/delete.png'>
 			<img title="Save" id="exportButton" class="btn" src='images/save.png'>
 			<img title="Edit Link Types" id="linkTypeButton" class="btn" src='images/links.png'>
-			<img title="Edit Map Styles" id="mapStyleButton" class="btn" src='images/map.png'>
 			<input id="fileinput" type="file"/>
 		</div>
 		<table id="placeTable"></table>
@@ -1431,11 +865,6 @@ cursor: pointer;
 	 	</div>
 	 </div>
 	 
-	 <div id="mapStyleDialog" title="Edit Map Style">
-	 	<textarea id="mapstyle" style="width:500px; height: 500px;"></textarea>
-	 	<div>Build custom map styles at <a target="_new" href="http://gmaps-samples-v3.googlecode.com/svn/trunk/styledmaps/wizard/index.html">http://gmaps-samples-v3.googlecode.com/svn/trunk/styledmaps/wizard/index.html</a></div>
-	 </div>
-	 
 	  <div id="linkTypeDialog" title="Edit Link Types">
 	 	<textarea id="linkTypes" style="width:500px; height: 500px;"></textarea>
 	 </div>
@@ -1455,33 +884,15 @@ cursor: pointer;
 	</div>
  -->	 	
 	
-	<div id="orgTypeDialog">
-		<div id="orgTypeToolbar" style="margin-left:10px; margin-bottom:10px; height:25px; width:100%">
-			<img title="Add" id="orgTypeAddButton" class="btn" src='images/add.png'>
-			<img title="Edit" id="orgTypeEditButton" class="btn" src='images/edit.png'>
-			<img title="Delete" id="orgTypeDeleteButton" class="btn" src='images/delete.png'>
-		</div>
-		<table id="orgTypeTable"></table>
-	</div>
-
-
-	<div id="networkDialog">
-		<div id="networkToolbar" style="margin-left:10px; margin-bottom:10px; height:25px; width:100%">
-			<img title="Add" id="networkAddButton" class="btn" src='images/add.png'>
-			<img title="Edit" id="networkEditButton" class="btn" src='images/edit.png'>
-			<img title="Delete" id="networkDeleteButton" class="btn" src='images/delete.png'>
-		</div>
-		<table id="networkTable"></table>
+	<div id="orgTypeDialog" ></div>
+	<div id="networkDialog"></div>
+	<div id="speedDialog"></div>
+	<div id="mapStylesDialog"></div>
+	
+	<div id="mapStyleChooser">
+		<select id="mapStyleSelect"></select>
 	</div>
 	
-	<div id="speedDialog">
-		<div id="speedToolbar" style="margin-left:10px; margin-bottom:10px; height:25px; width:100%">
-			<img title="Add" id="speedAddButton" class="btn" src='images/add.png'>
-			<img title="Edit" id="speedEditButton" class="btn" src='images/edit.png'>
-			<img title="Delete" id="speedDeleteButton" class="btn" src='images/delete.png'>
-		</div>
-		<table id="speedTable"></table>
-	</div>
 	
 	<div id="mapController" class="mapController">
 		
@@ -1494,6 +905,8 @@ cursor: pointer;
 			<strong>Networks</strong>
 			<div id="mapNetworks"></div>
 		</div>
+		
+		<button id="chooseMapStyleButton">Map Style</button>
 	</div>
 	
 </body>
