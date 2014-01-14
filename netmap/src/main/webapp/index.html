@@ -1,114 +1,51 @@
 <!DOCTYPE html>
 <html>
+	
 	<head>
-	  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-	  
-	  <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyDrCXoSYA0GKWtl6I8K2QZDAhe9ryNnQkE&sensor=false"></script>
-	  
-	  <script type='text/javascript' src='http://code.jquery.com/jquery-1.9.1.js'></script>
-	  <script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-
-	  <script type="text/javascript" src="js/jquery.ui.touch-punch.js"></script>
-
-	  <script type="text/javascript" src="js/jquery.toastmessage.js"></script>
-	  <link type="text/css" href="css/jquery.toastmessage.css" rel="stylesheet" />
-
-	  	  <script type="text/javascript" src="js/jquery.csv-0.71.js"></script>
-	  <script type="text/javascript" src="js/oms.min.js"></script>
-	  <script type="text/javascript" src="js/jquery.alerts.js"></script>
-	  <script type="text/javascript" src="js/jquery.jqGrid.src.js"></script>
-	  <script type="text/javascript" src="js/jquery.contextMenu.js"></script>
-
-	  <script type="text/javascript" src="netmap.editPopup.js"></script>
-
-	  <link rel="stylesheet" href="css/jquery.contextMenu.css" type="text/css" />
-	  
-	  <script type="text/javascript" src="js/jquery.colorpicker.js"></script>
-	  <link rel="stylesheet" href="css/jquery.colorpicker.css" type="text/css" />
-
-  		<script type="text/javascript" src="js/filereader.js"></script>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		 
+		<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyDrCXoSYA0GKWtl6I8K2QZDAhe9ryNnQkE&sensor=false"></script>
+		 
+		<script type='text/javascript' src='http://code.jquery.com/jquery-1.9.1.js'></script>
+		<script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+		
+		<script type="text/javascript" src="js/jquery.ui.touch-punch.js"></script>
+		
+		<script type="text/javascript" src="js/jquery.toastmessage.js"></script>
+		<link type="text/css" href="css/jquery.toastmessage.css" rel="stylesheet" />
+		
+		<script type="text/javascript" src="js/jquery.csv-0.71.js"></script>
+		<script type="text/javascript" src="js/oms.min.js"></script>
+		<script type="text/javascript" src="js/jquery.alerts.js"></script>
+		<script type="text/javascript" src="js/jquery.jqGrid.src.js"></script>
+		<script type="text/javascript" src="js/jquery.contextMenu.js"></script>
+		<script type="text/javascript" src="netmap.editPopup.js"></script>
+		
+		<link rel="stylesheet" href="css/jquery.contextMenu.css" type="text/css" />
+		 
+		<script type="text/javascript" src="js/jquery.colorpicker.js"></script>
+		<link rel="stylesheet" href="css/jquery.colorpicker.css" type="text/css" />
+		
+		<script type="text/javascript" src="js/filereader.js"></script>
 		<script type="text/javascript" src="js/uuid.js"></script>
 		
+		
+		<script type="text/javascript" src="map.js"></script>
+		<script type="text/javascript" src="netmap.js"></script>
+		 
+		<link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
+		<link rel="stylesheet" href="css/ui.jqgrid.css" type="text/css" />
+		
+		<link rel="stylesheet" href="netmap.css" type="text/css" />
 
-	  <script type="text/javascript" src="map.js"></script>
-	  <script type="text/javascript" src="netmap.js"></script>
-	  
-	  <script type="text/javascript" src="manage.js"></script>
-	  	  
-	  <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
-	 <link rel="stylesheet" href="css/ui.jqgrid.css" type="text/css" />
 
-	 <link rel="stylesheet" href="netmap.css" type="text/css" />
 
 <script>
-
-
-
 
 //prevent console fail
 if (typeof console === "undefined" || typeof console.log === "undefined") {
     console = {};
     console.log = function() {};
-}
-
-function getCSV(url, callback) {
-	console.log("retrieve: "+url);
-    $.ajax({
-        url: url,
-        cache: false,
-        dataType: 'text',
-        processData: false,
-        type: 'GET',
-        success: function(response) {
-        	var parsed = $.csv.toObjects(response);
-        	if(callback)
-        		callback(parsed);
-        },
-        error: function(request, type, errorThrown) {
-        	alert(msg_comm_err);
-        }
-    });
-	
-}
-
-
-function createLink(from, to, open) {
-	var f = indexedPlaces[from];
-	var t = indexedPlaces[to];
-
-	var type = indexedLinkTypes[0];
-	
-	var networkConnection = {
-			connectionSpeed: type,
-			network: networks[0],
-			orgStartUUID: f.uuid,
-			orgEndUUID: t.uuid			
-	};
-	
-	saveNetworkConnection(networkConnection, function(link) {
-		links.push(link);
-		var line = map.drawLink(link, f, t, indexedLinkTypes[0]);
-		// if (open) google.maps.event.trigger(line, 'click');
-	});
-}
-
-
-function getFirstProperty(obj) {
-	return obj[Object.keys(obj)[0]];
-}
-
-function handleDrag(place) {
-	//$("#placeTable").jqGrid('setCell', place.uuid, 'latitude', place.latitude);
-	//$("#placeTable").jqGrid('setCell', place.uuid, 'longitude', place.longitude);
-}
-
-function handleDragEnd(place) {
-	console.log("location update, merge it:",place);
-	mergeOrganization(place);
-}
-
-function handleSelectPlace(id) {
-	$("#placeTable").jqGrid('setSelection', id);	
 }
 
 function showLinks() {
@@ -117,7 +54,6 @@ function showLinks() {
 	$.each(links, function(idx, link) {
 		var from = indexedPlaces[link.orgStartUUID];
 		var to = indexedPlaces[link.orgEndUUID];
-		console.log("call draw link...");
 		var line = map.drawLink(link, from, to, indexedLinkTypes[link.type]);
 	});
 }
@@ -137,17 +73,23 @@ function doresize() {
 	$("#map3d").height(h);
 }
 
-$(document).ready(function() {
-	editMode = false;
-	if(querystring("mode") == "editMode")
-		editMode = true;
-		console.log("editmode: ", editMode);
+var indexedLinkTypes;
+var networks;
+var indexedPlaces;
+var locations;
+var map;
 
-	var locations;
+$(document).ready(function() {
+
+	editMode = false;
 	
+	if(querystring("mode") == "editMode") {
+		editMode = true;
+	}
 	
 	//setup map
 	map = new Map();
+
 	$(document).keyup(function(e) {
 		//pass escape thru to allow map to stop edit operations
 		  if (e.keyCode == 27) { 
@@ -155,150 +97,12 @@ $(document).ready(function() {
 		  }
 	});	
 
-	
-		
-			//links = [{start: 0, end: 37, type:'10G'},
-	//	         {start: 0, end: 5, type:'A'}];
-		
-		//resize components with window/split pane change
+	//resize components with window/split pane change
 	$(window).bind('resize', function() {
 		doresize();
 	}).trigger('resize');
 	
-	$("#bottom").resizable({
-		handles: "n"		
-	}).resize(function(event) {
-		doresize();	
-		return false;
-	});
-		
-		//toolbar
-	
-		$("#fileinput").hide().fileReaderJS({
-			on: {
-				load: function(e, file) {
-					console.log("****************************** FILE: ", file);
-					console.log("e:",e);
-	
-					importKML(file);
-				},
-				error: function(e, file) {
-	            },
-				groupstart: function(group) {
-				},
-				groupend: function(group) {
-				}
-			}
-	});
-
-		
-		$("#openButton").click(function() {
-			$("#fileinput").click();
-			return false;
-		});
-
-		
- 		$("#exportButton").click(function() {
- 			outputTable();
- 		});
-
- 		$("#linkTypeButton").click(function() {
- 			$("#linkTypes").html(JSON.stringify(indexedLinkTypes, null, 2));
- 	 		$("#linkTypeDialog").dialog("open");
- 		});
- 		
- 		
- 		$("#mapStyleChooser").dialog({
- 			autoOpen: false,
- 			modal: true,
- 			title: "Choose Map Style",
- 			width: 'auto',
- 			 buttons: {
- 		        "Done": function() {
- 				    $( this ).dialog( "close" );
- 		        }
- 		      }
- 		});
- 		
- 		$("#linkTypeDialog").dialog({
- 			autoOpen: false,
- 			modal: true,
- 			width: 600,
- 			 buttons: {
- 		        "Update": function() {
- 		        	try {
- 						indexedLinkTypes = JSON.parse($("#linkTypes").val());
- 						showLinks();
- 					} catch(e) {
- 						alert("Unable to update link types: JSON failed to parse");
- 					}
- 				    $( this ).dialog( "close" );
- 		        },
- 		        Cancel: function() {
- 		          $( this ).dialog( "close" );
- 		        }
- 		      }
- 		});
- 		
- 		
-		$("#addButton").click(function() {
-			addRow();
-		});
-		$("#editButton").click(function() {
-			var row = $("#placeTable").jqGrid("getGridParam", "selrow");
-			console.log("row: ",row);
-			editRow(row);
-		});
-		$("#deleteButton").click(function() {
-			var row = $("#placeTable").jqGrid("getGridParam", "selrow");
-			console.log("row: ",row);
-			deleteRow(row);
-		});
-		
-		//setup export dialog
-		$("#placecsvdownload").button();
-		$("#linkcsvdownload").button();
-		$("#jsondownload").button();
-	 	
-		$("#outputtabs textarea").focus(function () {
-			this.select();
-	        this.onmouseup = function() {
-	            this.onmouseup = null;
-	            return false;
-	        };
-		});
-	 	var tabs = $("#outputtabs").tabs();
-	
-		tabs.dialog({
-			width: 'auto',
-			autoOpen: false
-
-		});
-	
-		
-		//TODO: will work below into file open
-		/*
-		//used to parse and geocode the locations from a csv
-		getCSV("institutions.csv", function(places) {
-			var geocodePlacesComplete = geocodePlaces(places);
-	
-			console.log("got promise:",geocodePlacesComplete);
-			
-			$.when(geocodePlacesComplete).then(function(results) {
-				console.log("geocoding complete...");
-				console.log(results);
-				console.log(JSON.stringify(results));
-				
-				loadPlaces(results);
-			});
-	
-		});
-		*/
-	
 	if(!editMode) {
-		$("#bottom").hide();
-		doresize();
-		
 		
 		$.getJSON('ns/organization/displayDetails', function(result) {
 			orgDisplayItems = $.map(result, function(itm, idx) {
@@ -307,14 +111,13 @@ $(document).ready(function() {
 			});			
 		});
 		
-		
 	}
-
 		
 	var promises = [];	
 
 	promises.push($.getJSON('ns/networkConnection/speeds'));
 	promises.push($.getJSON('ns/networkConnection/networks'));
+	promises.push($.getJSON('ns/organization/types'));
 	promises.push($.getJSON('ns/organization'));
 	promises.push($.getJSON('ns/networkConnection'));
 
@@ -323,29 +126,38 @@ $(document).ready(function() {
 		
 		indexedLinkTypes = arguments[0][0];
 		networks = arguments[1][0];
-		places = arguments[2][0];
-		links = arguments[3][0];
+		organizationTypes = arguments[2][0];
+		places = arguments[3][0];
+		links = arguments[4][0];
 		
-		console.log('Network Speeds: ', indexedLinkTypes);
-		console.log('Networks: ', networks);
-		console.log('Organizations: ', places);
-		console.log('Network Connections: ', links);
+		indexedPlaces={};
+		$.each(places, function(idx, place) {
+			indexedPlaces[place.uuid] = place;
+			if(place.organizationType) {
+				place.organizationType.toString = function() {
+					return this.type;
+				};
+			}
+		});
 		
-		loadPlaces(places);
-		setupTable();
-		showLinks();
-		
-		createMapController();
+		if(editMode) {
+			$("#edit_canvas").load("edit.html", function() {
+				loadPlaces(places);
+				showLinks();
+				createMapController();
+			});
+		} else {
+			loadPlaces(places);
+			showLinks();
+			createMapController();			
+		}
+
 	});
 	
 })
 
 function createMapController() {
 	var me = this;
-	
-	console.log('In createMapController: ');
-	console.log('    Org Types: ' + JSON.stringify(organizationTypes, null, 2));
-	console.log('    Networks: ' + JSON.stringify(networks, null, 2));
 	
 	$.each(organizationTypes, function(index, type) {
 		var checkbox = $('<input>').attr({ type: 'checkbox', id: type.uuid, checked: true});
@@ -372,8 +184,6 @@ function createMapController() {
 		});
 	})
 	
-	
-	
 	$("#mapController").draggable();
 	
 	$("#mapStyleSelect").change(function() {
@@ -385,7 +195,6 @@ function createMapController() {
 	
 	$("#chooseMapStyleButton").button().click(function() {
 		$.getJSON("ns/mapStyles", function(result) {
-			
 	
 			var select = $("#mapStyleSelect");
 			select.empty();
@@ -397,6 +206,25 @@ function createMapController() {
 			$("#mapStyleChooser").dialog("open");
 		});
 		
+	});
+}
+
+function loadPlaces(places) {
+
+	$.each(places, function(idx, place) {
+	
+		if(place.geom.coordinates[0]) {
+			if (editMode)
+				place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, handleDragEnd);
+			else
+				place.marker = map.drawPlace(place);
+		}
+		
+		if(place.organizationType) {
+			place.organizationType.toString = function() {
+				return this.type;
+			};
+		}
 	});
 }
 
@@ -462,65 +290,6 @@ function showOrgDetails() {
 	
 }
 
-function importKML(file) {
-
-	var data = new FormData();
-
-	data.append("kmlFile", file);
-	
-
-	$.ajax({
-		url : 'ns/organization/loadKML',
-		data : data,
-		cache : false,
-		contentType : false,
-		processData : false,
-		type : 'POST',
-		success : function(data) {
-			showToast("reload organizations here...");
-		},
-		error : function(data) {
-			handleError(data);
-		}
-	});
-	
-}
-
-function colorFormatter(cellvalue, options, rowObject) {
-	return "<span style='display: inline-block; width:20px; height:20px; background-color: "+cellvalue+"'/>";
-}
-
-function deleteOrganization(id, callback) {
-	deleteCall("ns/organization/"+id, callback);	
-}
-
-function mergeOrganization(org, callback) {
-	var record = $.extend({},org);
-	
-	delete record.marker;
-	delete record.links;
-	delete record.latitude;
-	delete record.longitude;
-	delete record.id;
-
-	post('ns/organization', record, 'json', callback);
-}
-
-function showData(results) {
-	map.clearOverlays();
-	
-	console.log(results);
-	indexedLinkTypes = results.linkTypes;
-
-	map.setStyle(results.mapStyle)
-	
-	links = results.linkList;
-	loadPlaces(results.placeList);
-	places = results.placeList;
-	showLinks();
-	setupTable();
-}
-
 function querystring(key) {
    var re=new RegExp('(?:\\?|&)'+key+'=(.*?)(?=&|$)','gi');
    var r=[], m;
@@ -528,251 +297,6 @@ function querystring(key) {
    return r;
 }
 
-var myfunc = function() {
-	console.log('here');
-}
-
-function setupTable() {
-	if(!editMode)
-		return;
-	
-	var placeObj = getFirstProperty(indexedPlaces);
-
-	var colNames = [];
-	var colModel = [];
-
-	//setup table model based on properties of object
-	$.each(placeObj, function(key, val) {
-		console.log("key:",key,"val:",val);
-		
-		//Internal types we don't want in the table
-		if(key == 'marker' || key == 'links')
-			return true;
-		
-		var name = key;
-		console.log('name:',name);
-		colNames.push(key);
-		
-		var opts = {
-				name: name,
-				editable: true,
-				sortable: true,
-				sorttype: 'text'
-			};
-
-		if(key == "uuid") {
-			opts.key = true;
-			opts.hidden = true;		
-		}
-		
-		if(key == 'organizationType') {
-			opts.edittype = 'custom';
-			opts.editoptions = {
-				custom_element: function(value, options) {
-					console.log(value, options);
-
-					var select = $("<select>");
-					
-					$.each(organizationTypes, function(idx, itm) {
-						var option = $("<option>", {value: itm.type}).html(itm.type).appendTo(select);
-						if(itm.type == value)
-							option.attr("selected", "selected");
-						
-					});
-					
-					return select;
-				},
-				custom_value: function(elem) {
-				 	var val = $(elem).val();
-				 	console.log("val: ", val);
-				 	return val;
-				}
-			};
-		}
-		else if(key == 'connected') {
-			opts.edittype = 'checkbox';
-			opts.editoptions = {
-				value: "true:false"
-			};
-		}
-		else if(key == 'geom') {
-			opts.hidden = true;
-		}
-		
-		
-		
-		colModel.push(opts);
-	});
-	
-	
-	var w = $(window).width();
-	var lastsel;
-	
-	console.log("colNames:",colNames);
-	console.log("colModel:",colModel);
-	
-	tableOptions = {
-			
-			grouping:true, 
-			  groupingView : { 
-			     groupField : ['province'],
-			     groupDataSorted : true 
-			  }, 
-			datatype: "local",
-			sortable: true,
-			colNames:colNames,
-			colModel:colModel,
-			shrinkToFit: true,
-			height: 175,
-			width: w,
-			rowNum:places.length,
-		   	rowList:[10,20,30],
-		   	scroll: true,
-		   	scrollrows: true,
-//		   	pager: '#pagernav',
-			onSelectRow: function(id, status, event){
-				//check if edit bailed
-				if(id && id!==lastsel){
-					$("#placeTable").jqGrid('restoreRow',lastsel);
-				}
-				
-				//show corresponding infowindow on map
-				if(event) {
-					//only call if user actually click (otherwise recursive loop)
-					if(indexedPlaces[id].marker) {
-						map.zoomTo(indexedPlaces[id].marker);
-					}
-				}
-				
-			},
-			ondblClickRow: function (id, ri, ci, e) {
-				//edit on double click
-
-				lastsel=id;
-	//		    $("#placeTable").jqGrid('editRow', id, true, 'clientArray');
-				editRow(id);
-			    
-			}
-			
-		};
-	
-	
-	var table = $("#placeTable").jqGrid(tableOptions).navGrid("#pagernav",{edit:false,add:false,del:false});
-	
-	//set data reference directly on table so that we are linked for updates
-	table[0].p.data = places;
-	table.trigger('reloadGrid');
-	
-	$.contextMenu({
-		selector: ".ui-jqgrid tr",
-		build: function($trigger, e) {
-			console.log(e);
-			
-			console.log('^^^^^^^^^^^^^^^^^^^^^^^^^ target:',$(e.target));
-			
-	     	//var id = $(e.target).parent('th').attr('id');
-			var id = $trigger.attr('id');
-			
-			var items = {'edit': {name : "Edit"}};
-			var sel = $("#placeTable").jqGrid("getGridParam", "selrow");
-
-			var address = indexedPlaces[sel].postalCode; 
-			if(address) {
-				items['geocode'] = {name: "Geocode Postal Code."};
-			}
-			
-			
-			return {
-				callback: function(key, options) {
-					if(key == "edit")
-						editRow(sel);
-					else if(key == "geocode") {
-						var geocoder = new google.maps.Geocoder();
-						
-						geocoder.geocode({address: address}, function(results, status) {
-							console.log('geocode: ',address+" -> ",status);
-							if(status == google.maps.GeocoderStatus.OK) {
-
-								var newLatLng = new google.maps.LatLng(results[0].geometry.location.lat(), results[0].geometry.location.lng());
-								indexedPlaces[sel].marker.setPosition(newLatLng);
-								indexedPlaces[sel].geom = {type: "Point", coordinates: [newLatLng.lng(), newLatLng.lat()]};
-
-								mergeOrganization(indexedPlaces[sel]);
-//								console.log("save here too...");
-
-							} else {
-								showToast("unable to geocode", false, 'error');
-							}
-							
-						});
-						
-					}
-						console.log("geocode" + address);
-				},
-				items: items	
-			};
-		}
-	});
-	
-}
-
-
-
-function deleteRow(id) {
-	$.confirm("Do you want to delete "+indexedPlaces[id].name+"?", {
-		title: 'Confirm Delete',
-		buttons: {
-			"Yes": function() {
-				deleteOrganization(id);
-				
-				
-				$(this).dialog("close");
-				map.removeMarker(indexedPlaces[id].marker);
-				$("#placeTable").jqGrid('delRowData', id);
-				delete indexedPlaces[id];
-			},
-			"No": function() {
-				$(this).dialog("close");
-			}
-		}
-	});
-}
-
-function editRow(id) {
-	console.log("in editRow...");
-	$("#placeTable").jqGrid('editRow', id, {
-    	url: 'clientArray',
-    	keys: true,
-    	aftersavefunc: function() {
-    		//update back to objects
-			var pos = indexedPlaces[id].marker.getPosition();
-			indexedPlaces[id].geom = {type: "Point", coordinates: [pos.lng(), pos.lat()]};
-			indexedPlaces[id].organizationType = orgTypesByType[indexedPlaces[id].organizationType];
-			
-			mergeOrganization(indexedPlaces[id]);
-    	}
-    });
-}
-
-function addRow() {
-	var center = map.map.getCenter();
-	
-	mergeOrganization({
-		geom: {type: 'Point', coordinates: [center.lng(), center.lat()]},
-		organizationType: organizationTypes[0]
-	}, function(place) {
-		var table = $("#placeTable").jqGrid('addRowData', place.uuid, place, "first");
-
-		//keep index up to date, note jqgrid does an extend, so we need to get the reference from our linked array.
-		place = places[places.length-1];
-		indexedPlaces[place.uuid] = place;
-		
-		place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, handleDragEnd, true);
-
-		editRow(place.uuid);
-	});
-	
-}
 
 function getAutocomplete(value, options) {
 	console.log("in get autocomplete...", types);
@@ -797,119 +321,27 @@ function setValue(elem, operation, value) {
 </script>
 
 
-<style>
-
-body, html {
-height:100%;
-width:100%;
-margin:0px;
-padding:0px;
-}
-
-.btn {
-padding-top:2px;
-padding-right:5px;
-cursor: pointer;
-}
-
-.ui-button .ui-icon.draw-icon {
-    background-image: url('images/draw.png') !important;
-    width: 26px;
-    height: 26px; 
-    top: 14px;
-}
-
-.ui-button-text-icon-primary .ui-button-text {
-    padding: 0.4em 1em .4em 2.3em;
-}
-
-
-</style>
 </head>
   
-<body>
-	<div id="map_canvas" style="width:100%; height:100px;"></div>
-	<div id="bottom" style="border-top: 3px solid lightgrey; position: absolute; left:0px; bottom:0px; width:100%; height:225px;'">
-	
-		<div id="toolbar" style="margin-left:10px; height:25px; width:100%">
-			<img title="Settings" id="settingsButton" class="btn" style="float:right; margin-right:20px;"src='images/settings.png'>
-			<img title="Import KML" id="openButton" class="btn" src='images/open.png'>
-			<img title="Add Organization" id="addButton" class="btn" src='images/add.png'>
-			<img title="Edit Organization" id="editButton" class="btn" src='images/edit.png'>
-			<img title="Delete Organization" id="deleteButton" class="btn" src='images/delete.png'>
-			<img title="Save" id="exportButton" class="btn" src='images/save.png'>
-			<img title="Edit Link Types" id="linkTypeButton" class="btn" src='images/links.png'>
-			<input id="fileinput" type="file"/>
+	<body>
+		<div id="map_canvas" style="width:100%; height:100px;"></div>
+		<div id="edit_canvas"></div>
+
+		<div id="mapController" class="mapController">
+			
+			<div style="padding:5px;">
+				<strong>Organization Types</strong>
+				<div id="mapOrgTypes"></div>
+			</div>
+					
+			<div style="padding:5px; padding-top: 10px;">
+				<strong>Networks</strong>
+				<div id="mapNetworks"></div>
+			</div>
+			
+			<button id="chooseMapStyleButton">Map Style</button>
 		</div>
-		<table id="placeTable"></table>
-	 </div>
-	 
-	 <div id="outputtabs">
-	 	<ul>
-			<li><a href="#jsontab">JSON</a></li>
-			<li><a href="#csvtab">CSV</a></li>
-	 	</ul>
-	 	<div id="csvtab">
-	 		<div>Places</div>
-	 		<textarea id="placeCSV" style="width:600px; height:300px;"></textarea>
-	 		<div>Links</div>
-	 		<textarea id="linkCSV" style="width:600px; height:300px;"></textarea>
-	 		<br/>
-	 		<a id="placecsvdownload" download="place.csv">Download place.csv</a>
-	 		<a id="linkcsvdownload" download="link.csv">Download link.csv</a>
-		 	</div>
-	 	<div id="jsontab">
-	 		<textarea id="jsonoutput" style="width:600px; height:600px;"></textarea>
-	 		<br/>
-	 		<a id="jsondownload" download="netmap.json">Save</a>
-	 	</div>
-	 </div>
-	 
-	  <div id="linkTypeDialog" title="Edit Link Types">
-	 	<textarea id="linkTypes" style="width:500px; height: 500px;"></textarea>
-	 </div>
-	 
-	 	 
-<!-- 
-	<div style="padding-left:20px; width:600px; overflow:hidden;">
-		Styles:<br/>
-		<textarea style="width:500px; height:500px;" id="mapstyle"></textarea>
-		<br/>
-		<br/>
-		
-		
-		<p>
-		Links:<br/>
-		<div id="links"></div>
-	</div>
- -->	 	
-	
-	<div id="orgTypeDialog" ></div>
-	<div id="networkDialog"></div>
-	<div id="speedDialog"></div>
-	<div id="mapStylesDialog"></div>
-	
-	<div id="mapStyleChooser">
-		<select id="mapStyleSelect"></select>
-	</div>
-	
-	
-	<div id="mapController" class="mapController">
-		
-		<div style="padding:5px;">
-			<strong>Organization Types</strong>
-			<div id="mapOrgTypes"></div>
-		</div>
-				
-		<div style="padding:5px; padding-top: 10px;">
-			<strong>Networks</strong>
-			<div id="mapNetworks"></div>
-		</div>
-		
-		<button id="chooseMapStyleButton">Map Style</button>
-	</div>
-	
-</body>
+	</body>
 
 </html>
   

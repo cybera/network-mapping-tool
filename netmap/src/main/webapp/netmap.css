@@ -1,3 +1,27 @@
+body, html {
+height:100%;
+width:100%;
+margin:0px;
+padding:0px;
+}
+
+.btn {
+padding-top:2px;
+padding-right:5px;
+cursor: pointer;
+}
+
+.ui-button .ui-icon.draw-icon {
+    background-image: url('images/draw.png') !important;
+    width: 26px;
+    height: 26px; 
+    top: 14px;
+}
+
+.ui-button-text-icon-primary .ui-button-text {
+    padding: 0.4em 1em .4em 2.3em;
+}
+
 #displayDetails li {
 margin: 0 5px 5px 5px;
 padding: 5px;

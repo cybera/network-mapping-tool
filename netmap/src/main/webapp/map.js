@@ -300,14 +300,32 @@ Map.prototype.lineVisibility = function(visible, network) {
 };
 
 
+Map.prototype.updatePlace = function(place) {
+	var me = this;
+	$.each(this.markers, function(index, marker) {
+		if (marker.placename == place.uuid) {
+			/*
+			var colour = place.organizationType.colour;
+			var icon = $.extend({}, me.circle, {fillColor: colour});
+			marker.setIcon(icon);
+			*/
+			marker.setMap(null);
+			me.markers.pop(marker);
+			var newMarker = me.drawPlace(place, marker.linkCallback, marker.selectCallback, marker.dragCallback, marker.dragEndCallback);
+			map.zoomTo(newMarker);
+		}
+	});
+};
+
 Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCallback, dragEndCallback, bounce) {
 	var ll = new google.maps.LatLng(place.geom.coordinates[1], place.geom.coordinates[0]);
 
+	/*
 	var image = new google.maps.MarkerImage('http://maps.google.com/mapfiles/kml/pal4/icon57.png',
 		      new google.maps.Size(32, 32),
 		      new google.maps.Point(0,0),
 		      new google.maps.Point(16, 16));
-	
+	*/
 	
 	var animation = null;
 	if(bounce) 
@@ -332,16 +350,16 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 	if (place.organizationType)
 		marker.set("orgType", place.organizationType.uuid);
 	
-	this.markers.push(marker);
-	
-	console.log("MARDER: ",marker);
 	
 	marker.placename = place.uuid;
 	marker.linkCallback = linkCallback;
 	marker.selectCallback = selectCallback;
 	marker.dragCallback = dragCallback;
 	marker.dragEndCallback = dragEndCallback;
-	
+
+	this.markers.push(marker);
+	console.log("MARKER: ",marker);
+
 	var me = this;
 	this.oms.addMarker(marker); 
 
@@ -387,7 +405,7 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 
     
     return marker;
-}
+};
 
 Map.prototype.setStyle = function(style) {
 	this.style = style;
@@ -395,7 +413,7 @@ Map.prototype.setStyle = function(style) {
 }
 
 
-Map.prototype.drawLink = function(link, from, to, type) {
+Map.prototype.drawLink = function(link, from, to, type, click) {
 	var ll1 = new google.maps.LatLng(from.geom.coordinates[1], from.geom.coordinates[0]);
 	var ll2 = new google.maps.LatLng(to.geom.coordinates[1], to.geom.coordinates[0]);
 	
@@ -518,6 +536,7 @@ Map.prototype.drawLink = function(link, from, to, type) {
 	from.links.push({coordpos: 0, line: pl});
 	to.links.push({coordpos: 1, line: pl});
 
+	// if (click) google.maps.event.trigger(pl, 'click');
     
     return pl;
 };

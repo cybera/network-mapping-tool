@@ -179,7 +179,8 @@
 		    		console.log("dat ais: ",d);
 		    		
 		    		console.log("after save func, call post: ",me.options.url,me.dataById[id]);
-        			post(me.options.url, me.dataById[id], 'json');
+		    		post(me.options.url, me.dataById[id], 'json');
+		    		// post(me.options.url, d, 'json');
 		    	}
 		    });
         }

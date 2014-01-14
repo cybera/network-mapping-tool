@@ -185,22 +185,4 @@ function outputTable() {
 }
 
 
-function loadPlaces(places) {
-	indexedPlaces={};
 
-	$.each(places, function(idx, place) {
-		//place.name = place['Institutions - Eng Name'];
-	
-		if(place.geom.coordinates[0]) {
-			place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, handleDragEnd);
-		}
-		
-		if(place.organizationType) {
-			place.organizationType.toString = function() {
-				return this.type;
-			}
-		}
-		
-		indexedPlaces[place.uuid] = place;
-	});
-}

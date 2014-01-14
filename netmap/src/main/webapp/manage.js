@@ -54,6 +54,7 @@ $(document).ready(function() {
 				name: 'colour', 
 				sortable: true,
 				formatter: colorFormatter,
+				// unformat: colorUnformatter,
 				edittype: 'custom',
 				editoptions: {
 					custom_element: function(value, options) {
@@ -106,6 +107,7 @@ $(document).ready(function() {
 			name: 'colour', 
 			sortable: true,
 			formatter: colorFormatter,
+			// unformat: colorUnformatter,
 			edittype: 'custom',
 			editoptions: {
 				custom_element: function(value, options) {
@@ -189,3 +191,17 @@ $("#speedDialog").editPopup({
 	
 	
 });
+
+function colorFormatter(cellvalue, options, rowObject) {
+	return "<span style='display: inline-block; width:20px; height:20px; background-color: "
+			+ cellvalue + "'/>";
+}
+
+/*
+function colorUnformatter(cellvalue, options, rowObject) {
+	console.log('UNFORMATTING COLOUR: ' + JSON.stringify(cellvalue, null, 2));
+	console.log('Options: ' + JSON.stringify(options, null, 2));
+	console.log('Row: ' + JSON.stringy(rowObject, null, 2));
+	return cellvalue;
+}
+*/
