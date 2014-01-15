@@ -222,8 +222,22 @@ Map.prototype.notifyEscape = function(marker) {
 		this.linkStart = undefined;
 		this.linkLine.setMap(undefined);
 	}
+	if(this.currentEditLine) {
+		this.clearEditLine();
+	}
 }
 
+Map.prototype.clearEditLine = function() {
+	if(this.midmarkers) {
+		$.each(this.midmarkers, function(idx, itm) {
+			itm.setMap(null);
+		});
+		$.each(this.waymarkers, function(idx, itm) {
+			itm.setMap(null);
+		});
+		this.currentEditLine = undefined;
+	}
+};
 
 Map.prototype.zoomTo = function(marker) {
 	var latlngbounds = new google.maps.LatLngBounds();
@@ -389,7 +403,22 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
    	 	
    	 	if(place.links) {
    	 		$.each(place.links, function(idx, itm) {
-   	 			itm.line.getPath().setAt(itm.coordpos, newpos);
+   	 			var coordpos = itm.coordpos;
+   	 			var midmarkerpos = 0;
+   	 			
+   	 			if(coordpos > 0) {
+   	 				coordpos = itm.line.getPath().getLength()-1;
+   	 				midmarkerpos = coordpos-1;
+   	 			}	
+
+   	 			console.log("coordpos:", coordpos);
+   	 			itm.line.getPath().setAt(coordpos, newpos);
+
+   	 			if(me.currentEditLine) {
+	   	 			console.log("objs: ",itm.line, "->", me.currentEditLine.line);
+	   	 			if(itm.line == me.currentEditLine.line)
+		 				me.midmarkers[midmarkerpos].setMap(null);
+   	 			}
    	 		});
    	 	}
    	 	
@@ -397,6 +426,19 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 
     google.maps.event.addListener(marker, 'dragend', function (e) {
     	console.log("dragend...",marker);
+    	
+    	var place = indexedPlaces[marker.placename];
+   	 	if(place.links) {
+   	 		$.each(place.links, function(idx, itm) {
+   	 			if(me.currentEditLine) {
+		   	 		if(itm.line == me.currentEditLine.line) {
+			 			me.createPullMarkers(me.currentEditLine.line, me.currentEditLine.connection);
+		   	 		}
+   	 			}
+	   	 		me.storeLink(itm);
+   	 		});
+   	 	}   	 		
+   	 		
     	if(marker.dragEndCallback) {
         	var place = indexedPlaces[marker.placename];
     		marker.dragEndCallback(place);
@@ -407,18 +449,53 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
     return marker;
 };
 
+Map.prototype.storeLink = function(link) {
+	var obj = $.extend({}, link.connection);
+	
+	obj.geom = {type: "LineString",
+			    coordinates: []};
+	
+	link.line.getPath().forEach(function(point, idx) {
+		obj.geom.coordinates.push([point.lng(), point.lat()]);
+	});
+	
+	post('ns/networkConnection', obj);
+};
+
 Map.prototype.setStyle = function(style) {
 	this.style = style;
 	this.map.setOptions({styles: style});
 }
 
+Map.prototype.getLatLng = function(coordinates) {
+	return new google.maps.LatLng(coordinates[1], coordinates[0]);
+};
 
 Map.prototype.drawLink = function(link, from, to, type, click) {
-	var ll1 = new google.maps.LatLng(from.geom.coordinates[1], from.geom.coordinates[0]);
-	var ll2 = new google.maps.LatLng(to.geom.coordinates[1], to.geom.coordinates[0]);
+	
+	if(!link.geom) {
+		console.log("NO GEOMETRY....");
+		link.geom = { type: 'LineString',
+					  coordinates: [
+					                [from.geom.coordinates[0], from.geom.coordinates[1]],
+					                [to.geom.coordinates[0], to.geom.coordinates[1]]
+			         ]
+		};
+		console.log(link.geom);	
+		
+		post('ns/networkConnection', link);		
+	}
+	
+	var coords = [];
+	var me = this;
+	$.each(link.geom.coordinates, function(idx, itm) {
+		coords.push(me.getLatLng(itm));
+	});
+
+	console.log("coords is: ",coords);
 	
 	var options = {
-		path: [ll1, ll2],
+		path: coords,
 		map: this.map,
 		strokeColor: link.network.colour,
 		strokeWeight: link.connectionSpeed.lineThickness
@@ -429,7 +506,25 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
     this.lines.push(pl);
     
     var me = this;
+    
+ 	google.maps.event.addListener(pl, 'rightclick', function(e) {
+ 		var showpull = true;
+ 		
+ 		if(me.currentEditLine) {
+ 			if(pl == me.currentEditLine.line) {
+ 				showpull = false;
+ 			}
+ 			me.clearEditLine();
+ 		}
+ 		
+ 		if(showpull) {
+ 			me.createPullMarkers(pl, link);
+ 		}
+ 	});
+
+    
  	google.maps.event.addListener(pl, 'click', function(e) {
+
  		console.log('Click On Link');
 			var base = $("<div>", {style: 'display: inline-block; padding: 5px; padding-bottom: 20px;'});
  			$("<div>").html("<strong>"+from.name+" -> "+to.name+"</strong>").appendTo(base);
@@ -493,6 +588,17 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 	 					}
 	 				});
 	 			}).button().appendTo(base).wrap("<div>");
+	 			
+	 			$("<button>", {style: 'margin: 5px; padding: 0px;'}).html("Edit Line").button().appendTo(base).click(function() {
+	 	        	 me.infoWindow.close();
+
+	 				console.log("find midpoint and show marker", pl);
+	 				//var path = pl.getPath();
+	 				me.createPullMarkers(pl, link);
+	 				
+	 			});
+	 			
+	 			
  			}
  			else {
  				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px;'}).appendTo(base);
@@ -509,17 +615,11 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
  			if(e)
  				me.infoWindow.setPosition(e.latLng);
  			else {
- 				var projection = me.map.getProjection();
+ 				
  				var startLatLng = new google.maps.LatLng(from.latitude, from.longitude); 
  				var endLatLng = new google.maps.LatLng(to.latitude, to.longitude);
- 				var startPoint = projection.fromLatLngToPoint(startLatLng); 
- 				var endPoint = projection.fromLatLngToPoint(endLatLng); 
- 				// Average 
- 				var midPoint = new google.maps.Point( 
- 				    (startPoint.x + endPoint.x) / 2, 
- 				    (startPoint.y + endPoint.y) / 2); 
- 				// Unproject 
- 				var midLatLng = projection.fromPointToLatLng(midPoint); 
+ 				
+ 				var midLatLng = me.getMidPoint(startLatLng, endLatLng);
 				me.infoWindow.setPosition(midLatLng);
  			}
  			me.infoWindow.open(me.map);
@@ -533,12 +633,127 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 	if(to.links == undefined)
 		to.links = [];
 	
-	from.links.push({coordpos: 0, line: pl});
-	to.links.push({coordpos: 1, line: pl});
+	from.links.push({coordpos: 0, line: pl, connection: link});
+	to.links.push({coordpos: 1, line: pl, connection: link});
 
 	// if (click) google.maps.event.trigger(pl, 'click');
     
     return pl;
+};
+
+Map.prototype.createPullMarkers = function(line, link) {
+	this.clearEditLine();
+	
+	this.currentEditLine = {line: line, connection: link};
+	
+	var me = this;
+	var lastpoint;
+	this.midmarkers = [];
+	this.waymarkers = [];
+	
+	var path = line.getPath();
+	path.forEach(function(point, idx) {
+		if(idx > 0) {
+			me.createMidMarker(idx, line, point, lastpoint);
+			
+			if(idx < path.getLength()-1) {
+				me.createWayMarker(idx, line, point);
+			}
+			
+		}
+		lastpoint = point;
+	});
+};
+
+Map.prototype.createWayMarker = function(idx, line, point) {
+	var me = this;
+	var path = line.getPath();
+	
+	var marker = new google.maps.Marker({
+    	position: point,
+    	map: me.map,
+    	icon: {
+  	      path: google.maps.SymbolPath.CIRCLE,
+  	      strokeOpacity: 1,
+  	      scale: 5
+  	    },
+        raiseOnDrag: false,
+    	draggable: true
+    });
+	this.waymarkers.push(marker);
+	
+	google.maps.event.addListener(marker, "drag", function(e) {
+		me.midmarkers[idx-1].setMap(null);
+		me.midmarkers[idx].setMap(null);
+		
+		console.log("drag",idx,e.latLng);
+		path.setAt(idx, e.latLng);
+	});
+	google.maps.event.addListener(marker, "dragend", function(e) {
+		me.createPullMarkers(line, me.currentEditLine.connection);
+		me.storeLink(me.currentEditLine);
+	});
+	google.maps.event.addListener(marker, "dblclick", function (e) { 
+        path.removeAt(idx);
+        me.createPullMarkers(line, me.currentEditLine.connection);
+		me.storeLink(me.currentEditLine);
+     });
+};
+
+Map.prototype.getMidPoint = function(startLatLng, endLatLng) {
+	var projection = this.map.getProjection();
+	var startPoint = projection.fromLatLngToPoint(startLatLng); 
+	var endPoint = projection.fromLatLngToPoint(endLatLng); 
+	
+	// Average 
+	var midPoint = new google.maps.Point( 
+	    (startPoint.x + endPoint.x) / 2, 
+	    (startPoint.y + endPoint.y) / 2); 
+	// Unproject 
+	return projection.fromPointToLatLng(midPoint); 
+};
+
+Map.prototype.createMidMarker = function(idx,line,point,lastpoint) {
+	var me = this;
+	var path = line.getPath();
+	
+	var position = this.getMidPoint(point, lastpoint);
+	
+//	
+//	var position = new google.maps.LatLng(
+//	    		point.lat() - (0.5 * (point.lat() - lastpoint.lat())),
+//	    		point.lng() - (0.5 * (point.lng() - lastpoint.lng()))
+//	    	);
+	console.log("position", position);
+
+	var marker = new google.maps.Marker({
+    	position: position,
+    	map: me.map,
+    	icon: {
+  	      path: google.maps.SymbolPath.CIRCLE,
+  	      strokeOpacity: 0.3,
+  	      scale: 5
+  	    },
+      raiseOnDrag: false,
+    	draggable: true
+    });
+	this.midmarkers.push(marker);
+	
+	google.maps.event.addListener(marker, "dragstart", function(e) {
+		console.log("dragstarted, insert waypoint at:",idx,e.latLng);
+		path.insertAt(idx, e.latLng);
+	});
+	google.maps.event.addListener(marker, "drag", function(e) {
+		console.log("drag",idx,e.latLng);
+		path.setAt(idx, e.latLng);
+	});
+	google.maps.event.addListener(marker, "dragend", function(e) {
+		console.log("drag",idx,e.latLng);
+		path.setAt(idx, e.latLng);
+		
+		me.createPullMarkers(line, me.currentEditLine.connection);
+		me.storeLink(me.currentEditLine);
+	});
 };
 
 /*
