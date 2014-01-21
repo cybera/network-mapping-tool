@@ -33,6 +33,8 @@ public class NetmapLoader {
 
 	private void loadInitialOrganizationTypes() {
 
+		if (organizationService.getTypes().size() > 0) return;
+		
 		try {
 			organizationService.save(new OrganizationType("K-12", "#3CDE1F"));
 		} catch (Exception e) {
@@ -56,6 +58,8 @@ public class NetmapLoader {
 	}
 
 	private void loadInitialOrganization() {
+		if (organizationService.get().size() > 0) return;
+		
 		try {
 			Organization o = new Organization();
 			
@@ -71,7 +75,8 @@ public class NetmapLoader {
 	}
 	
 	private void loadInitialNetworks() {
-
+		if (networkConnectionService.getNetworks().size() > 0) return;
+		
 		try {
 			networkConnectionService.save(new Network("CyberaNet", "#FA0526"));
 		} catch (Exception e) {
@@ -90,7 +95,8 @@ public class NetmapLoader {
 	}
 
 	private void loadInitialConnectionSpeeds() {
-
+		if (networkConnectionService.getConnectionSpeeds().size() > 0) return;
+		
 		try {
 			networkConnectionService.save(new ConnectionSpeed("A", 0.5));
 		} catch (Exception e) {}
