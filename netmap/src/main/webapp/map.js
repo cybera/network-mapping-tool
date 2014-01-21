@@ -84,7 +84,6 @@ function Map() {
     		    strokeWeight: 0.6,
     		    scale: 4.0
     		};
-
          
          this.linkLine = new google.maps.Polyline({
          	path: [ll, ll],
@@ -341,20 +340,25 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 		      new google.maps.Point(16, 16));
 	*/
 	
+	
 	var animation = null;
 	if(bounce) 
 		animation = google.maps.Animation.BOUNCE;
 		
-	var colour = "white";
+	var colour = "FFFFFF";
 	if(place.organizationType)
 		colour = place.organizationType.colour;
 	
-	var icon = $.extend({}, this.circle, {fillColor: colour});
+	var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + colour.replace('#', ''),
+	        new google.maps.Size(21, 34),
+	        new google.maps.Point(0,0),
+	        new google.maps.Point(10, 34));
+	// var icon = $.extend({}, this.circle, {fillColor: colour});
 	
 	var marker = new google.maps.Marker({
 		position: ll,
 		map: this.map,
-		icon: icon,
+		icon: pinImage,
 		zIndex: 100,
 		draggable: editMode,
 		animation: animation
