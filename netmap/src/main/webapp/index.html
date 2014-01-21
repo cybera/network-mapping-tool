@@ -81,6 +81,24 @@ var map;
 
 $(document).ready(function() {
 
+	$("#searchText").change(function() {
+		var geocoder = new google.maps.Geocoder();
+
+		geocoder.geocode({
+			address : $(this).val()
+		}, function(results, status) {
+			console.log('geocode: ', " -> ", status);
+			if (status == google.maps.GeocoderStatus.OK) {
+				map.map.setCenter(results[0].geometry.location);
+		        if (results[0].geometry.viewport) 
+		          map.map.fitBounds(results[0].geometry.viewport);
+			} else {
+				showToast("unable to geocode", false, 'error');
+			}
+
+		});
+	});
+	
 	editMode = false;
 	
 	if(querystring("mode") == "editMode") {
@@ -328,6 +346,7 @@ function setValue(elem, operation, value) {
 		<div id="edit_canvas"></div>
 
 		<div id="mapController" class="mapController">
+			<input id="searchText" placeholder="Search Location"></input>
 			
 			<div style="padding:5px;">
 				<strong>Organization Types</strong>
