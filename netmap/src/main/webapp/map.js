@@ -527,7 +527,7 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 
  		console.log('Click On Link');
 			var base = $("<div>", {style: 'display: inline-block; padding: 5px; padding-bottom: 20px;'});
- 			$("<div>").html("<strong>"+from.name+" -> "+to.name+"</strong>").appendTo(base);
+ 			$("<div>", {style: 'height: 25px;'}).html("<strong>"+from.name+" <img src='images/arrow.gif' width=25 height=15 style='vertical-align: bottom;'/> "+to.name+"</strong>").appendTo(base);
  			$("<hr>").appendTo(base);
  			
  			if(editMode) {
