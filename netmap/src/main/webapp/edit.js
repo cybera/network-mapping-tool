@@ -138,7 +138,6 @@ function setupTable() {
 		return;
 
 	var placeObj = getFirstProperty(indexedPlaces);
-
 	var colNames = [];
 	var colModel = [];
 

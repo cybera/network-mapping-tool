@@ -73,8 +73,9 @@ public class Organization {
 	@Column(name = "member_since")
 	private Date memberSince;
 
+	@Column(name = "notes")
+	private String notes;
 
-	
 	public String getUUID() {
 		return UUID;
 	}
@@ -90,8 +91,6 @@ public class Organization {
 	public void setOrganizationType(OrganizationType organizationType) {
 		this.organizationType = organizationType;
 	}
-
-	
 
 	public String getName() {
 		return name;
@@ -205,6 +204,12 @@ public class Organization {
 		this.website = website;
 	}
 
+	public String getNotes() {
+		return notes;
+	}
 
-	
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
+
 }
