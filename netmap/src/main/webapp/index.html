@@ -99,6 +99,18 @@ $(document).ready(function() {
 		});
 	});
 	
+	$("#mapStyleChooser").dialog({
+		autoOpen : false,
+		modal : true,
+		title : "Choose Map Style",
+		width : 'auto',
+		buttons : {
+			"Done" : function() {
+				$(this).dialog("close");
+			}
+		}
+	});
+	
 	editMode = false;
 	
 	if(querystring("mode") == "editMode") {
@@ -212,8 +224,9 @@ function createMapController() {
 	});
 	
 	$("#chooseMapStyleButton").button().click(function() {
+		console.log("in click...");
 		$.getJSON("ns/mapStyles", function(result) {
-	
+			console.log("result:",result);
 			var select = $("#mapStyleSelect");
 			select.empty();
 			$.each(result, function(idx, itm) {
@@ -359,7 +372,13 @@ function setValue(elem, operation, value) {
 			</div>
 			
 			<button id="chooseMapStyleButton">Map Style</button>
+			
 		</div>
+		
+		<div id="mapStyleChooser">
+			<select id="mapStyleSelect"></select>
+		</div>
+		
 	</body>
 
 </html>

@@ -37,17 +37,7 @@ $(document).ready(function() {
 		$("#linkTypeDialog").dialog("open");
 	});
 
-	$("#mapStyleChooser").dialog({
-		autoOpen : false,
-		modal : true,
-		title : "Choose Map Style",
-		width : 'auto',
-		buttons : {
-			"Done" : function() {
-				$(this).dialog("close");
-			}
-		}
-	});
+
 
 	$("#linkTypeDialog").dialog({
 		autoOpen : false,
