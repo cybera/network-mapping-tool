@@ -1,7 +1,11 @@
 package ca.cybera.netmap.service;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -63,7 +67,19 @@ public class OrganizationServiceImpl implements OrganizationService {
 
 	@Override
 	public void  importKML(InputStream is) throws Exception {
-		Kml kml = Kml.unmarshal(is);
+		
+		StringBuffer buf = new StringBuffer();
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
+		String ln;
+		while((ln=br.readLine())!= null) {
+			buf.append(ln);
+		}
+		String kmlinput = buf.toString();
+		kmlinput = kmlinput.replaceAll("http://earth.google.com/kml/2.2", "http://www.opengis.net/kml/2.2");
+		
+		System.out.println("load: "+kmlinput);
+		
+		Kml kml = Kml.unmarshal(kmlinput);
 		parseKMLFeature(kml.getFeature());
 	}
 
@@ -89,6 +105,24 @@ public class OrganizationServiceImpl implements OrganizationService {
 		}
 	}
 
+	private String getComponent(List<String> components, int pos) {
+		String ret = null;
+		if(pos < components.size()) {
+			ret = components.get(pos).trim();
+			
+			if(ret.length() >= 255) {
+				System.out.println("\n\n\n*********************************************************************************************\n\n\n");
+			}
+				
+			System.out.println("ret: "+ret+" -> "+ret.length());
+			
+			
+		}
+
+		
+		return ret;
+	}
+	
 	private void addPlacemarkAsOrg(Placemark p) throws Exception {
 		Geometry g = p.getGeometry();
 
@@ -96,6 +130,21 @@ public class OrganizationServiceImpl implements OrganizationService {
 		o.setName(p.getName());
 		o.setAddress(p.getAddress());
 		o.setPhone(p.getPhoneNumber());
+		
+		String desc = p.getDescription();
+		if(desc != null){
+			String[] toks = desc.split(",");
+			
+			List<String> components = Arrays.asList(toks);
+			Collections.reverse(components);
+			
+			o.setPostalCode(getComponent(components, 0));
+			o.setProvince(getComponent(components, 1));
+			o.setCity(getComponent(components, 2));
+			o.setAddress(getComponent(components, 3));
+			System.out.println(desc);
+			System.out.println(desc.length());
+		}
 		
 		 if(g instanceof Point) {
 				Point point = (Point)g;
@@ -107,6 +156,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 			 throw new Exception("Geometry must be a point in order to import as an Organization");
 		 }
 		 
+		 System.out.println(o);
 		 save(o);
 	}
 	

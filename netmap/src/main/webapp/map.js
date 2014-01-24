@@ -98,6 +98,7 @@ function Map() {
          
          
          this.oms = new OverlappingMarkerSpiderfier(this.map, {keepSpiderfied: true});
+         
          var me = this;
          
          
@@ -202,17 +203,6 @@ function Map() {
      		me.lastLatLng = e.latLng;
      	});
      	
-     	google.maps.event.addListener(this.map, 'rightclick', function(e) {
-     		console.log(e);
-     		console.log(this);
-     		var marker = new google.maps.Marker({
-     			position: e.latLng,
-     			map: me.map,
-     			icon: me.circle,
-     			draggable: editMode
-     		});
-     		
-     	});
          
 }
 
@@ -368,7 +358,7 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 	if (place.organizationType)
 		marker.set("orgType", place.organizationType.uuid);
 	
-	
+	place.marker = marker;
 	marker.placename = place.uuid;
 	marker.linkCallback = linkCallback;
 	marker.selectCallback = selectCallback;

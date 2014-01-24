@@ -212,4 +212,12 @@ public class Organization {
 		this.notes = notes;
 	}
 
+	@Override
+	public String toString() {
+		return "Organization [UUID=" + UUID + ", organizationType=" + organizationType + ", website=" + website + ", name=" + name + ", frenchName=" + frenchName + ", campus=" + campus
+				+ ", mainOrSubCampus=" + mainOrSubCampus + ", address=" + address + ", city=" + city + ", province=" + province + ", postalCode=" + postalCode + ", phone=" + phone + ", connected="
+				+ connected + ", comments=" + comments + ", geom=" + geom + ", memberSince=" + memberSince + ", notes=" + notes + "]";
+	}
+
+	
 }

@@ -479,3 +479,5 @@ function handleDragEnd(place) {
 function handleSelectPlace(id) {
 	$("#placeTable").jqGrid('setSelection', id);
 }
+
+//@ sourceURL=edit.js

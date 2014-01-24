@@ -11,4 +11,6 @@ public interface MapStyleService {
 
 	public MapStyle save(MapStyle style);
 
+	public void delete(String uuid);
+
 }

@@ -80,7 +80,7 @@ var locations;
 var map;
 
 $(document).ready(function() {
-
+	
 	$("#searchText").change(function() {
 		var geocoder = new google.maps.Geocoder();
 
@@ -181,6 +181,13 @@ $(document).ready(function() {
 			showLinks();
 			createMapController();			
 		}
+
+	 	$("#searchText").autocomplete({
+	 		source: $.map(places, function(val, key) { return {label: val.name, id: val.uuid}; }),
+	 		select: function(event, ui) {
+	 			map.zoomTo(indexedPlaces[ui.item.id].marker);
+	 		}
+		});
 
 	});
 	

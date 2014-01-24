@@ -99,7 +99,8 @@
         					"Yes": function() {
         						deleteCall(me.options.url+"/"+id, function() {
         							table.jqGrid('delRowData', id);
-        							
+        				
+        							delete me.dataById[id];
         							$.getJSON(me.options.urlList, function(result) {
         								me.options.onRefreshList.call(me, result);
         							});
@@ -131,6 +132,8 @@
         		$.getJSON(me.options.urlList, function(result) {
         			me.data = result;
         			me.options.onListRefresh.call(me, me.data);
+            		
+        			me.dataById = {};
             		
             		$.each(me.data, function(idx, itm) {
             			me.dataById[itm.uuid] = itm;
@@ -171,15 +174,20 @@
         	this.table.jqGrid('editRow', id, {
 		    	url: 'clientArray',
 		    	keys: true,
-		    	aftersavefunc: function(obj1, obj2, obj3, obj4, obj5) {
-		    		var d = me.table.getRowData(obj1);
+		    	aftersavefunc: function(row) {
 		    		
-		    		//FIXME: need to track down why "new" items are mismatched here... it is like the editing int he jqGrid is working on an internal object not the reference...
-		    		//what is odd, is that it works correctly on Organization/new/edit, which seems to be done in the same fashion...
-		    		console.log("dat ais: ",d);
+		    		//Get the new updated data (reference in me.data) & update the index
+		    		var newdata = $.grep(me.data, function(obj, idx) {
+		    			   if(obj.uuid == row)
+		    			      return true;
+		    			})[0];
+
+		    		//jqGrid appends id to the object on adds, kill it as we don't want it
+		    		delete newdata.id;
+		    		me.dataById[row] = newdata; 
 		    		
-		    		console.log("after save func, call post: ",me.options.url,me.dataById[id]);
-		    		post(me.options.url, me.dataById[id], 'json');
+		    		console.log("after save func, call post: ",me.options.url,newdata);
+		    		post(me.options.url, me.dataById[row], 'json');
 		    		// post(me.options.url, d, 'json');
 		    	}
 		    });
