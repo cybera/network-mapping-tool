@@ -127,8 +127,9 @@ function Map() {
 
      	this.oms.addListener('click', function(marker) {
 //     		google.maps.event.addListener(marker, 'click', function() {
-     			var base = $("<div>");
+     			var base = $("<div>", {style: 'display: inline-block; padding: 5px; padding-bottom: 20px;'});
      			$("<div>").html("<strong>"+indexedPlaces[marker.placename].name+"</strong>").appendTo(base);
+     			$("<hr>").appendTo(base);
      			
      			if(marker.selectCallback)
      				marker.selectCallback(marker.placename);
@@ -155,10 +156,11 @@ function Map() {
      				}
      				else {
      					var place = indexedPlaces[marker.placename];
-     					
+     					console.log('In Show...', place);
      					$.each(orgDisplayItems, function(idx, itm) {
+     						console.log('Display item: ', itm);
      						if(place[itm]) {
-         						$("<div>").text(place[itm]).appendTo(base);
+         						$("<div>").html('<strong>' + itm + ': </strong>' + place[itm]).appendTo(base);
      						}
      					});
      					

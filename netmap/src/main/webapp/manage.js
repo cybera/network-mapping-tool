@@ -196,12 +196,65 @@ function colorFormatter(cellvalue, options, rowObject) {
 	return "<span style='display: inline-block; width:20px; height:20px; background-color: "
 			+ cellvalue + "'/>";
 }
+function showOrgDetails() {
 
-/*
-function colorUnformatter(cellvalue, options, rowObject) {
-	console.log('UNFORMATTING COLOUR: ' + JSON.stringify(cellvalue, null, 2));
-	console.log('Options: ' + JSON.stringify(options, null, 2));
-	console.log('Row: ' + JSON.stringy(rowObject, null, 2));
-	return cellvalue;
+	$.getJSON('ns/organization/displayDetails', function(result) {
+
+		var div = $("<div>");
+
+		var ul = $("<ul>", {id: 'displayDetails'}).appendTo(div);
+		
+		$.each(result, function(idx, itm) {
+			var li = $("<li>", {'data-value': itm.uuid, 'class': 'ui-state-default'}).html(itm.name)
+			.appendTo(ul)
+			.append($("<span>", {'class': 'ui-icon ui-icon-grip-dotted-horizontal', style: 'float: right; display: inline-block'}));
+			
+			if(!itm.visible)
+				li.addClass("ui-state-disabled");
+			
+			li.click(function() {
+				   if($(this).hasClass('ui-state-disabled'))
+					   $(this).removeClass("ui-state-disabled");
+				   else
+					   $(this).addClass("ui-state-disabled");
+				});
+			
+		});
+		
+		ul.sortable({
+	      placeholder: "ui-state-highlight"
+	    });
+		
+		
+		div.dialog({
+			title: "User Org Details",
+			width: 'auto',
+			height: 'auto',
+			buttons: { 'Okay': function() {
+				var newDetails = $.map($("#displayDetails li"), function(itm, idx) { 
+					var $itm = $(itm);
+					var obj = { 
+						visible: !$itm.hasClass("ui-state-disabled"),
+						uuid: $itm.attr("data-value"),
+						name: $itm.text(),
+						sortOrder: idx
+					};
+					return obj;
+				});
+				
+				
+				post('ns/organization/displayDetails', newDetails);
+				$(this).dialog("close");
+			},
+			'Cancel': function() {
+				$(this).dialog("close");
+			}
+			},
+			close: function(event, ui) {
+				$(this).dialog('destroy').remove();
+			}
+		});
+	});
+	
+	
 }
-*/

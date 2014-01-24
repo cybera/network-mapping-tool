@@ -1,5 +1,8 @@
 package ca.cybera.netmap.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
@@ -8,6 +11,7 @@ import org.springframework.stereotype.Service;
 import ca.cybera.netmap.model.ConnectionSpeed;
 import ca.cybera.netmap.model.Network;
 import ca.cybera.netmap.model.Organization;
+import ca.cybera.netmap.model.OrganizationDisplay;
 import ca.cybera.netmap.model.OrganizationType;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -29,6 +33,7 @@ public class NetmapLoader {
 		loadInitialNetworks();
 		loadInitialConnectionSpeeds();
 
+		loadInitialOrgDisplay();
 	}
 
 	private void loadInitialOrganizationTypes() {
@@ -118,5 +123,31 @@ public class NetmapLoader {
 		} catch (Exception e) {}
 
 	
+	}
+	
+	private void loadInitialOrgDisplay() {
+		if (organizationService.getOrgDisplay().size() > 0) return;
+		
+		try {
+			List<OrganizationDisplay> list = new ArrayList<OrganizationDisplay>();
+			
+			list.add(new OrganizationDisplay("name", true, 1));
+			list.add(new OrganizationDisplay("frenchName", true, 2));
+			list.add(new OrganizationDisplay("organizationType", true, 3));
+			list.add(new OrganizationDisplay("website", true, 4));
+			list.add(new OrganizationDisplay("campus", false, 5));
+			list.add(new OrganizationDisplay("mainOrSubCampus", false, 6));
+			list.add(new OrganizationDisplay("address", false, 7));
+			list.add(new OrganizationDisplay("city", true, 8));
+			list.add(new OrganizationDisplay("province", true, 9));
+			list.add(new OrganizationDisplay("postalCode", false, 10));
+			list.add(new OrganizationDisplay("phone", false, 11));
+			list.add(new OrganizationDisplay("connected", false, 12));
+			list.add(new OrganizationDisplay("comments", true, 13));
+			list.add(new OrganizationDisplay("memberSince", false, 14));
+			list.add(new OrganizationDisplay("notes", false, 15));
+			
+			organizationService.saveOrgDisplay(list);
+		} catch (Exception e) {}
 	}
 }

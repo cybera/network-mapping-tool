@@ -27,6 +27,14 @@ public class OrganizationDisplay {
 	private Integer sortOrder;
 	
 	
+	public OrganizationDisplay() {}
+	
+	public OrganizationDisplay(String name, Boolean visible, Integer sortOrder) {
+		this.name = name;
+		this.visible = visible;
+		this.sortOrder = sortOrder;
+	}
+	
 	public Integer getSortOrder() {
 		return sortOrder;
 	}
