@@ -7,8 +7,10 @@ padding:0px;
 
 .btn {
 padding-top:2px;
+padding-left:2px;
 padding-right:5px;
 cursor: pointer;
+vertical-align:middle;
 }
 
 .ui-button .ui-icon.draw-icon {

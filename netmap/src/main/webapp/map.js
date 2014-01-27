@@ -528,7 +528,7 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
  			
  			if(editMode) {
  				
- 				var speedDiv = $("<div>", {style: 'display: inline-block; padding: 5px;'}).appendTo(base);
+ 				var speedDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
  				$("<label>", {text: 'Speed: '}).appendTo(speedDiv);
 	 			var select = $("<select>", {id: 'speedSelect'}).appendTo(speedDiv);
 	 			$.each(indexedLinkTypes, function(idx, itm) {
@@ -545,7 +545,7 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 	 				saveNetworkConnection(link);
 	 			});
 
- 				var networkDiv = $("<div>", {style: 'display: inline-block; padding: 5px;'}).appendTo(base);
+ 				var networkDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
  				$("<label>", {text: 'Network: '}).appendTo(networkDiv);
 	 			var select = $("<select>", {id: 'networkSelect'}).appendTo(networkDiv);
 	 			$.each(networks, function(idx, itm) {
@@ -562,9 +562,95 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 	 				saveNetworkConnection(link);
 	 			});
 
+	 			var linksDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
+	 			var deleteLink = $("<img>", {title:"Delete", id:"deleteLink", 'class':"btn", src: 'images/delete.png'});
+ 				$("<label>", {text: 'Links: ', style: 'vertical-align: top;'}).appendTo(linksDiv).append(deleteLink);
+	 			var select = $("<select>", {id: 'linksSelect', style: 'width:100%;', multiple: 'multiple'}).appendTo(linksDiv);
+	 			if (link.websites != null) {
+		 			$.each(link.websites, function(index, website) {
+							$("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']').appendTo(select);
+		 			});
+	 			}
 	 			
- 			
-	 			$("<button>", {style: 'margin: 5px; padding: 0px;'}).html("Delete").click(function() {
+	 			deleteLink.click(function(e) {
+	 				var idsToDelete = $('#linksSelect').val();
+	 				if (idsToDelete == null) {
+	 					showToast("Select the link(s) you would like to delete.");
+	 					return;
+	 				}
+	 				
+	 				$.each(idsToDelete, function(index, id) {
+	 					console.log("Going to delete: " + id);
+	 					var obToDelete = $.grep(link.websites, function(item){
+	 				      return item.uuid == id;
+	 				    });
+	 					console.log("Poping off " + JSON.stringify(obToDelete[0], null, 2));
+	 					link.websites.splice($.inArray(obToDelete[0], link.websites),1);
+	 					console.log("Now Have: " + JSON.stringify(link.websites, null, 2));
+	 				});
+	 				saveNetworkConnection(link, function(newLink) {
+	 					link = newLink;
+	 					$('#linksSelect').empty();
+	 					$.each(newLink.websites, function(index, website) {
+	 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
+	 						$('#linksSelect').append(option);
+	 					});
+	 				});
+	 				
+	 			});
+	 			
+	 			var addLinkDiv = $("<div>").appendTo(linksDiv);
+	 			$("<input>", {type: 'text', id: 'websiteLabel', placeholder: 'name'}).appendTo(addLinkDiv);
+	 			$("<input>", {type: 'text', id: 'websiteUrl', placeholder: 'url', style: 'width:190px; margin-left:5px;'}).appendTo(addLinkDiv);
+	 			var addLink = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addLinkDiv);
+	 			
+	 			var addGraphDiv = $("<div>").appendTo(linksDiv);
+	 			$("<input>", {type: 'text', id: 'graphLabel', placeholder: 'name'}).appendTo(addGraphDiv);
+	 			var select = $("<select>", {id: 'graphUrl', placeholder: 'graph', style: 'width:190px; margin-left:5px;'}).appendTo(addGraphDiv);
+	 			var addGraph = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addGraphDiv);
+	 		
+	 			
+	 			$.getJSON('ns/networkConnection/graphs', function(result) {
+	 				$("<option>", {value: ''}).html('').appendTo(select);
+	 				$.each(result, function(index, graph) {
+	 					$("<option>", {value:graph.url}).html(graph.name).appendTo(select);
+	 				});
+	 			});
+				
+	 			
+	 			addLink.click(function() {
+	 				if (! link.websites) link.websites = [];
+	 				link.websites.push({url: $('#websiteUrl').val(), label: $('#websiteLabel').val()});
+	 				saveNetworkConnection(link, function(newLink) {
+	 					link = newLink;
+	 					$('#linksSelect').empty();
+	 					$('#websiteUrl').val('');
+	 					$('#websiteLabel').val('');
+	 					$.each(newLink.websites, function(index, website) {
+	 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
+	 						$('#linksSelect').append(option);
+	 					});
+	 				});
+	 			});
+
+	 			addGraph.click(function() {
+	 				if (! link.websites) link.websites = [];
+	 				link.websites.push({url: $('#graphUrl').val(), label: $('#graphLabel').val()});
+	 				saveNetworkConnection(link, function(newLink) {
+	 					link = newLink;
+	 					$('#linksSelect').empty();
+	 					$('#graphUrl').val('');
+	 					$('#graphLabel').val('');
+	 					$.each(newLink.websites, function(index, website) {
+	 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
+	 						$('#linksSelect').append(option);
+	 					});
+	 				});
+	 			});
+
+	 			
+	 			var buttonDiv = $("<div>").appendTo(base);
+	 			$("<button>", {style: 'diplay: inline-block; margin: 5px; padding: 0px;'}).html("Delete").click(function() {
 	 				$.confirm("Do you want to delete this link?", {
 	 					title: 'Confirm Delete',
 	 					buttons: {
@@ -583,9 +669,9 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 	 						}
 	 					}
 	 				});
-	 			}).button().appendTo(base).wrap("<div>");
+	 			}).button().appendTo(buttonDiv);
 	 			
-	 			$("<button>", {style: 'margin: 5px; padding: 0px;'}).html("Edit Line").button().appendTo(base).click(function() {
+	 			$("<button>", {style: 'display: inline-block; margin: 5px; padding: 0px;'}).html("Edit Line").button().appendTo(buttonDiv).click(function() {
 	 	        	 me.infoWindow.close();
 
 	 				console.log("find midpoint and show marker", pl);
@@ -600,9 +686,10 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
  				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px;'}).appendTo(base);
  				$("<div>").html("<B>Speed:</B> " + link.connectionSpeed.speed).appendTo(div);
  				$("<div>").html("<B>Network:</B> " + link.network.name).appendTo(div);
- 				var linksDiv = $("<div>").html("<B>Links:</B>").appendTo(div);
+ 				$("<div>").html("<B>Links:</B> ").appendTo(div);
+ 				var linksDiv = $("<div>").appendTo(div);
  				$.each(link.websites, function(index, website) {
- 					linksDiv.append($("<a>", {href: website.url, text: website.label}));
+ 					linksDiv.append($("<div>", {style: 'padding-left:25px;'}).append($("<a>", {href: website.url, text: website.label, target: '_blank'})));
  				});
  			}
  			

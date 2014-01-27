@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import ca.cybera.netmap.assembler.NetworkConnectionAssembler;
 import ca.cybera.netmap.dto.NetworkConnectionDTO;
 import ca.cybera.netmap.model.ConnectionSpeed;
+import ca.cybera.netmap.model.Graph;
 import ca.cybera.netmap.model.Network;
 import ca.cybera.netmap.service.NetworkConnectionService;
 
@@ -111,6 +112,14 @@ public class NetworkConnectionController extends BaseController {
 	void deleteSpeed(@PathVariable("uuid") String uuid) throws Exception {
 
 		service.deleteConnectionSpeed(uuid);
+
+	}
+
+	@RequestMapping(value = "/graphs", method = RequestMethod.GET)
+	public @ResponseBody
+	List<Graph> getGraphs() throws Exception {
+
+		return service.getGraphs();
 
 	}
 

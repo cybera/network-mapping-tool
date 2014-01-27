@@ -3,6 +3,7 @@ package ca.cybera.netmap.service;
 import java.util.List;
 
 import ca.cybera.netmap.model.ConnectionSpeed;
+import ca.cybera.netmap.model.Graph;
 import ca.cybera.netmap.model.Network;
 import ca.cybera.netmap.model.NetworkConnection;
 
@@ -34,4 +35,5 @@ public interface NetworkConnectionService {
 	
 	public void deleteConnectionSpeed(String uuid);
 
+	public List<Graph> getGraphs();
 }

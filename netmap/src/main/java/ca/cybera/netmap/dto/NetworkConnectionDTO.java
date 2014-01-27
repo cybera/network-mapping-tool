@@ -4,14 +4,13 @@ import java.util.List;
 
 import ca.cybera.netmap.model.ConnectionSpeed;
 import ca.cybera.netmap.model.Network;
-import ca.cybera.netmap.model.Website;
 
 public class NetworkConnectionDTO {
 
 	private String UUID;
 	private Network network;
 	private ConnectionSpeed connectionSpeed;
-	private List<Website> websites;
+	private List<WebsiteDTO> websites;
 	private String orgStartUUID;
 	private String orgEndUUID;
 	private GeometryDTO geom;
@@ -40,11 +39,11 @@ public class NetworkConnectionDTO {
 		this.connectionSpeed = connectionSpeed;
 	}
 
-	public List<Website> getWebsites() {
+	public List<WebsiteDTO> getWebsites() {
 		return websites;
 	}
 
-	public void setWebsites(List<Website> websites) {
+	public void setWebsites(List<WebsiteDTO> websites) {
 		this.websites = websites;
 	}
 

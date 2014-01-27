@@ -2,6 +2,7 @@ package ca.cybera.netmap.model;
 
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -38,7 +39,7 @@ public class NetworkConnection {
 	@JoinColumn(name = "connection_speed")
 	private ConnectionSpeed connectionSpeed;
 
-	@OneToMany (fetch = FetchType.EAGER)
+	@OneToMany (fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinTable(name = "network_connection_website", joinColumns = { @JoinColumn(name = "network_connection_uuid", referencedColumnName = "UUID") }, inverseJoinColumns = { @JoinColumn(name = "website_UUID", referencedColumnName = "UUID") })
 	private List<Website> websites;
 

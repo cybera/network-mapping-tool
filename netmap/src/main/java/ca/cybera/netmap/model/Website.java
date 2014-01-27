@@ -5,11 +5,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import org.hibernate.annotations.GenericGenerator;
 
-@XmlRootElement
 @Entity
 @Table(name = "website")
 public class Website {
@@ -49,5 +47,12 @@ public class Website {
 	public void setLabel(String label) {
 		this.label = label;
 	}
-
+	
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("UUID: ").append((getUUID() == null) ? "NULL" : getUUID());
+		sb.append("\nURL: ").append((getUrl() == null) ? "NULL" : getUrl());
+		sb.append("\nLabel: ").append((getLabel() == null) ? "NULL" : getLabel());
+		return sb.toString();
+	}
 }

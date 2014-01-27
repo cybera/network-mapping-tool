@@ -16,6 +16,7 @@ public class NetworkConnectionAssembler {
 
 	@Inject private GeometryAssembler geomAssembler;
 	@Inject private OrganizationService orgService;
+	@Inject private WebsiteAssembler websiteAssembler;
 	
 	public NetworkConnection assemble(NetworkConnectionDTO dto) throws Exception {
 		
@@ -27,7 +28,7 @@ public class NetworkConnectionAssembler {
 		nc.setGeom(geomAssembler.assemble(dto.getGeom()));
 		nc.setNetwork(dto.getNetwork());
 		nc.setStart(orgService.get(dto.getOrgStartUUID()));
-		nc.setWebsites(dto.getWebsites());
+		nc.setWebsites(websiteAssembler.assemble(dto.getWebsites()));
 		
 		return nc;
 		
@@ -43,7 +44,7 @@ public class NetworkConnectionAssembler {
 		dto.setNetwork(nc.getNetwork());
 		dto.setOrgEndUUID(nc.getEnd().getUUID());
 		dto.setOrgStartUUID(nc.getStart().getUUID());
-		dto.setWebsites(nc.getWebsites());
+		dto.setWebsites(websiteAssembler.getDTO(nc.getWebsites()));
 		
 		return dto;
 		
