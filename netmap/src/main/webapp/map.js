@@ -96,10 +96,37 @@ function Map() {
          this.map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
          this.infoWindow = new google.maps.InfoWindow();
          
+         var me = this;
+
+         overlay = new google.maps.OverlayView();
+         overlay.draw = function() {};
+         overlay.setMap(this.map);
+         
+         google.maps.event.addListener(this.map, 'click', function(event) {
+        
+        	 console.log("check line...");
+
+        	 //determine a 15 pixel buffer as a tolerance in degrees
+    		var point1 = event.pixel;
+    		var point2 = new google.maps.Point(point1.x+15,point1.y);
+    		var overlayProjection = overlay.getProjection();
+    		var o1 = overlayProjection.fromContainerPixelToLatLng(point1);
+    		var o2 = overlayProjection.fromContainerPixelToLatLng(point2);
+    		var tolerance = o2.lng() - o1.lng();
+
+    		//popup if line within tolerance
+        	 $.each(me.lines, function(idx, line){
+        		 if(google.maps.geometry.poly.isLocationOnEdge(event.latLng, line, tolerance)) {
+        			 google.maps.event.trigger(line, 'click', event);
+        			 return false;
+        		 }
+        	 });
+         });
+         
+         
          
          this.oms = new OverlappingMarkerSpiderfier(this.map, {keepSpiderfied: true});
          
-         var me = this;
          
          
          //The dragging of spiderified markers looks to be broken, so disable when in that mode.
@@ -521,197 +548,199 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
     
  	google.maps.event.addListener(pl, 'click', function(e) {
 
- 		console.log('Click On Link');
-			var base = $("<div>", {style: 'display: inline-block; padding: 5px; padding-bottom: 20px;'});
- 			$("<div>", {style: 'height: 25px;'}).html("<strong>"+from.name+" <img src='images/arrow.gif' width=25 height=15 style='vertical-align: bottom;'/> "+to.name+"</strong>").appendTo(base);
- 			$("<hr>").appendTo(base);
- 			
- 			if(editMode) {
- 				
- 				var speedDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
- 				$("<label>", {text: 'Speed: '}).appendTo(speedDiv);
-	 			var select = $("<select>", {id: 'speedSelect'}).appendTo(speedDiv);
-	 			$.each(indexedLinkTypes, function(idx, itm) {
-	 				var option = $("<option>", {value:itm.speed}).html(itm.speed);
-	 				if(link.connectionSpeed.speed == itm.connectionSpeed)
-	 					option.attr("selected", "selected");
-	 				option.appendTo(select);
-	  			});
-
-	 			select.change(function() {
-	 				var newSpeed = indexedLinkTypes[$(this).prop('selectedIndex')];
-	 				link.connectionSpeed = newSpeed;
-	 				pl.setOptions({strokeWeight: newSpeed.lineThickness});
-	 				saveNetworkConnection(link);
-	 			});
-
- 				var networkDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
- 				$("<label>", {text: 'Network: '}).appendTo(networkDiv);
-	 			var select = $("<select>", {id: 'networkSelect'}).appendTo(networkDiv);
-	 			$.each(networks, function(idx, itm) {
-	 				var option = $("<option>", {value:itm.uuid}).html(itm.name);
-	 				if(link.network.name == itm.name)
-	 					option.attr("selected", "selected");
-	 				option.appendTo(select);
-	  			});
-
-	 			select.change(function() {
-	 				var newNetwork = networks[$(this).prop('selectedIndex')];
-	 				link.network = newNetwork;
-	 				pl.setOptions({strokeColor: newNetwork.colour});
-	 				saveNetworkConnection(link);
-	 			});
-
-	 			var linksDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
-	 			var deleteLink = $("<img>", {title:"Delete", id:"deleteLink", 'class':"btn", src: 'images/delete.png'});
- 				$("<label>", {text: 'Links: ', style: 'vertical-align: top;'}).appendTo(linksDiv).append(deleteLink);
-	 			var select = $("<select>", {id: 'linksSelect', style: 'width:100%;', multiple: 'multiple'}).appendTo(linksDiv);
-	 			if (link.websites != null) {
-		 			$.each(link.websites, function(index, website) {
-							$("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']').appendTo(select);
-		 			});
-	 			}
-	 			
-	 			deleteLink.click(function(e) {
-	 				var idsToDelete = $('#linksSelect').val();
-	 				if (idsToDelete == null) {
-	 					showToast("Select the link(s) you would like to delete.");
-	 					return;
-	 				}
-	 				
-	 				$.each(idsToDelete, function(index, id) {
-	 					console.log("Going to delete: " + id);
-	 					var obToDelete = $.grep(link.websites, function(item){
-	 				      return item.uuid == id;
-	 				    });
-	 					console.log("Poping off " + JSON.stringify(obToDelete[0], null, 2));
-	 					link.websites.splice($.inArray(obToDelete[0], link.websites),1);
-	 					console.log("Now Have: " + JSON.stringify(link.websites, null, 2));
-	 				});
-	 				saveNetworkConnection(link, function(newLink) {
-	 					link = newLink;
-	 					$('#linksSelect').empty();
-	 					$.each(newLink.websites, function(index, website) {
-	 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
-	 						$('#linksSelect').append(option);
-	 					});
-	 				});
-	 				
-	 			});
-	 			
-	 			var addLinkDiv = $("<div>").appendTo(linksDiv);
-	 			$("<input>", {type: 'text', id: 'websiteLabel', placeholder: 'name'}).appendTo(addLinkDiv);
-	 			$("<input>", {type: 'text', id: 'websiteUrl', placeholder: 'url', style: 'width:190px; margin-left:5px;'}).appendTo(addLinkDiv);
-	 			var addLink = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addLinkDiv);
-	 			
-	 			var addGraphDiv = $("<div>").appendTo(linksDiv);
-	 			$("<input>", {type: 'text', id: 'graphLabel', placeholder: 'name'}).appendTo(addGraphDiv);
-	 			var select = $("<select>", {id: 'graphUrl', placeholder: 'graph', style: 'width:190px; margin-left:5px;'}).appendTo(addGraphDiv);
-	 			var addGraph = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addGraphDiv);
-	 		
-	 			
-	 			$.getJSON('ns/networkConnection/graphs', function(result) {
-	 				$("<option>", {value: ''}).html('').appendTo(select);
-	 				$.each(result, function(index, graph) {
-	 					$("<option>", {value:graph.url}).html(graph.name).appendTo(select);
-	 				});
-	 			});
+		console.log('Click On Link');
+		var base = $("<div>", {style: 'display: inline-block; padding: 5px; padding-bottom: 20px;'});
+			$("<div>", {style: 'height: 25px;'}).html("<strong>"+from.name+" <img src='images/arrow.gif' width=25 height=15 style='vertical-align: bottom;'/> "+to.name+"</strong>").appendTo(base);
+			$("<hr>").appendTo(base);
+			
+			if(editMode) {
 				
-	 			
-	 			addLink.click(function() {
-	 				if (! link.websites) link.websites = [];
-	 				link.websites.push({url: $('#websiteUrl').val(), label: $('#websiteLabel').val()});
-	 				saveNetworkConnection(link, function(newLink) {
-	 					link = newLink;
-	 					$('#linksSelect').empty();
-	 					$('#websiteUrl').val('');
-	 					$('#websiteLabel').val('');
-	 					$.each(newLink.websites, function(index, website) {
-	 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
-	 						$('#linksSelect').append(option);
-	 					});
-	 				});
-	 			});
+				var speedDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
+				$("<label>", {text: 'Speed: '}).appendTo(speedDiv);
+ 			var select = $("<select>", {id: 'speedSelect'}).appendTo(speedDiv);
+ 			$.each(indexedLinkTypes, function(idx, itm) {
+ 				var option = $("<option>", {value:itm.speed}).html(itm.speed);
+ 				if(link.connectionSpeed.speed == itm.connectionSpeed)
+ 					option.attr("selected", "selected");
+ 				option.appendTo(select);
+  			});
 
-	 			addGraph.click(function() {
-	 				if (! link.websites) link.websites = [];
-	 				link.websites.push({url: $('#graphUrl').val(), label: $('#graphLabel').val()});
-	 				saveNetworkConnection(link, function(newLink) {
-	 					link = newLink;
-	 					$('#linksSelect').empty();
-	 					$('#graphUrl').val('');
-	 					$('#graphLabel').val('');
-	 					$.each(newLink.websites, function(index, website) {
-	 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
-	 						$('#linksSelect').append(option);
-	 					});
-	 				});
-	 			});
+ 			select.change(function() {
+ 				var newSpeed = indexedLinkTypes[$(this).prop('selectedIndex')];
+ 				link.connectionSpeed = newSpeed;
+ 				pl.setOptions({strokeWeight: newSpeed.lineThickness});
+ 				saveNetworkConnection(link);
+ 			});
 
-	 			
-	 			var buttonDiv = $("<div>").appendTo(base);
-	 			$("<button>", {style: 'diplay: inline-block; margin: 5px; padding: 0px;'}).html("Delete").click(function() {
-	 				$.confirm("Do you want to delete this link?", {
-	 					title: 'Confirm Delete',
-	 					buttons: {
-	 						"Yes": function() {
-	 							$(this).dialog("close");
-	 							deleteNetworkConnection(link, function() {
-		 			 				links.splice(links.indexOf(link), 1);
-		 			 				console.log(links);
-		 			 				
-		 			 				pl.setMap(null);
-		 			 				me.infoWindow.close();
-	 							});
-	 						},
-	 						"No": function() {
-	 							$(this).dialog("close");
-	 						}
-	 					}
-	 				});
-	 			}).button().appendTo(buttonDiv);
-	 			
-	 			$("<button>", {style: 'display: inline-block; margin: 5px; padding: 0px;'}).html("Edit Line").button().appendTo(buttonDiv).click(function() {
-	 	        	 me.infoWindow.close();
+				var networkDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
+				$("<label>", {text: 'Network: '}).appendTo(networkDiv);
+ 			var select = $("<select>", {id: 'networkSelect'}).appendTo(networkDiv);
+ 			$.each(networks, function(idx, itm) {
+ 				var option = $("<option>", {value:itm.uuid}).html(itm.name);
+ 				if(link.network.name == itm.name)
+ 					option.attr("selected", "selected");
+ 				option.appendTo(select);
+  			});
 
-	 				console.log("find midpoint and show marker", pl);
-	 				//var path = pl.getPath();
-	 				me.createPullMarkers(pl, link);
-	 				
+ 			select.change(function() {
+ 				var newNetwork = networks[$(this).prop('selectedIndex')];
+ 				link.network = newNetwork;
+ 				pl.setOptions({strokeColor: newNetwork.colour});
+ 				saveNetworkConnection(link);
+ 			});
+
+ 			var linksDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
+ 			var deleteLink = $("<img>", {title:"Delete", id:"deleteLink", 'class':"btn", src: 'images/delete.png'});
+				$("<label>", {text: 'Links: ', style: 'vertical-align: top;'}).appendTo(linksDiv).append(deleteLink);
+ 			var select = $("<select>", {id: 'linksSelect', style: 'width:100%;', multiple: 'multiple'}).appendTo(linksDiv);
+ 			if (link.websites != null) {
+	 			$.each(link.websites, function(index, website) {
+						$("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']').appendTo(select);
 	 			});
-	 			
-	 			
  			}
- 			else {
- 				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px;'}).appendTo(base);
- 				$("<div>").html("<B>Speed:</B> " + link.connectionSpeed.speed).appendTo(div);
- 				$("<div>").html("<B>Network:</B> " + link.network.name).appendTo(div);
- 				$("<div>").html("<B>Links:</B> ").appendTo(div);
- 				var linksDiv = $("<div>").appendTo(div);
- 				$.each(link.websites, function(index, website) {
- 					linksDiv.append($("<div>", {style: 'padding-left:25px;'}).append($("<a>", {href: website.url, text: website.label, target: '_blank'})));
+ 			
+ 			deleteLink.click(function(e) {
+ 				var idsToDelete = $('#linksSelect').val();
+ 				if (idsToDelete == null) {
+ 					showToast("Select the link(s) you would like to delete.");
+ 					return;
+ 				}
+ 				
+ 				$.each(idsToDelete, function(index, id) {
+ 					console.log("Going to delete: " + id);
+ 					var obToDelete = $.grep(link.websites, function(item){
+ 				      return item.uuid == id;
+ 				    });
+ 					console.log("Poping off " + JSON.stringify(obToDelete[0], null, 2));
+ 					link.websites.splice($.inArray(obToDelete[0], link.websites),1);
+ 					console.log("Now Have: " + JSON.stringify(link.websites, null, 2));
  				});
- 			}
- 			
- 			console.log(base);
- 			console.log(me.infoWindow);
- 			me.infoWindow.setContent(base[0]);
- 			
- 			console.log("e:",e);
- 			//either position where user clicked, or midpoint of line
- 			if(e)
- 				me.infoWindow.setPosition(e.latLng);
- 			else {
+ 				saveNetworkConnection(link, function(newLink) {
+ 					link = newLink;
+ 					$('#linksSelect').empty();
+ 					$.each(newLink.websites, function(index, website) {
+ 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
+ 						$('#linksSelect').append(option);
+ 					});
+ 				});
  				
- 				var startLatLng = new google.maps.LatLng(from.latitude, from.longitude); 
- 				var endLatLng = new google.maps.LatLng(to.latitude, to.longitude);
- 				
- 				var midLatLng = me.getMidPoint(startLatLng, endLatLng);
-				me.infoWindow.setPosition(midLatLng);
- 			}
- 			me.infoWindow.open(me.map);
- 	});
+ 			});
+ 			
+ 			var addLinkDiv = $("<div>").appendTo(linksDiv);
+ 			$("<input>", {type: 'text', id: 'websiteLabel', placeholder: 'name'}).appendTo(addLinkDiv);
+ 			$("<input>", {type: 'text', id: 'websiteUrl', placeholder: 'url', style: 'width:190px; margin-left:5px;'}).appendTo(addLinkDiv);
+ 			var addLink = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addLinkDiv);
+ 			
+ 			var addGraphDiv = $("<div>").appendTo(linksDiv);
+ 			$("<input>", {type: 'text', id: 'graphLabel', placeholder: 'name'}).appendTo(addGraphDiv);
+ 			var select = $("<select>", {id: 'graphUrl', placeholder: 'graph', style: 'width:190px; margin-left:5px;'}).appendTo(addGraphDiv);
+ 			var addGraph = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addGraphDiv);
+ 		
+ 			
+ 			$.getJSON('ns/networkConnection/graphs', function(result) {
+ 				$("<option>", {value: ''}).html('').appendTo(select);
+ 				$.each(result, function(index, graph) {
+ 					$("<option>", {value:graph.url}).html(graph.name).appendTo(select);
+ 				});
+ 			});
+			
+ 			
+ 			addLink.click(function() {
+ 				if (! link.websites) link.websites = [];
+ 				link.websites.push({url: $('#websiteUrl').val(), label: $('#websiteLabel').val()});
+ 				saveNetworkConnection(link, function(newLink) {
+ 					link = newLink;
+ 					$('#linksSelect').empty();
+ 					$('#websiteUrl').val('');
+ 					$('#websiteLabel').val('');
+ 					$.each(newLink.websites, function(index, website) {
+ 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
+ 						$('#linksSelect').append(option);
+ 					});
+ 				});
+ 			});
 
+ 			addGraph.click(function() {
+ 				if (! link.websites) link.websites = [];
+ 				link.websites.push({url: $('#graphUrl').val(), label: $('#graphLabel').val()});
+ 				saveNetworkConnection(link, function(newLink) {
+ 					link = newLink;
+ 					$('#linksSelect').empty();
+ 					$('#graphUrl').val('');
+ 					$('#graphLabel').val('');
+ 					$.each(newLink.websites, function(index, website) {
+ 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
+ 						$('#linksSelect').append(option);
+ 					});
+ 				});
+ 			});
+
+ 			
+ 			var buttonDiv = $("<div>").appendTo(base);
+ 			$("<button>", {style: 'diplay: inline-block; margin: 5px; padding: 0px;'}).html("Delete").click(function() {
+ 				$.confirm("Do you want to delete this link?", {
+ 					title: 'Confirm Delete',
+ 					buttons: {
+ 						"Yes": function() {
+ 							$(this).dialog("close");
+ 							deleteNetworkConnection(link, function() {
+	 			 				links.splice(links.indexOf(link), 1);
+	 			 				console.log(links);
+	 			 				
+	 			 				pl.setMap(null);
+	 			 				me.infoWindow.close();
+ 							});
+ 						},
+ 						"No": function() {
+ 							$(this).dialog("close");
+ 						}
+ 					}
+ 				});
+ 			}).button().appendTo(buttonDiv);
+ 			
+ 			$("<button>", {style: 'display: inline-block; margin: 5px; padding: 0px;'}).html("Edit Line").button().appendTo(buttonDiv).click(function() {
+ 	        	 me.infoWindow.close();
+
+ 				console.log("find midpoint and show marker", pl);
+ 				//var path = pl.getPath();
+ 				me.createPullMarkers(pl, link);
+ 				
+ 			});
+ 			
+ 			
+			}
+			else {
+				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px;'}).appendTo(base);
+				$("<div>").html("<B>Speed:</B> " + link.connectionSpeed.speed).appendTo(div);
+				$("<div>").html("<B>Network:</B> " + link.network.name).appendTo(div);
+				$("<div>").html("<B>Links:</B> ").appendTo(div);
+				var linksDiv = $("<div>").appendTo(div);
+				$.each(link.websites, function(index, website) {
+					linksDiv.append($("<div>", {style: 'padding-left:25px;'}).append($("<a>", {href: website.url, text: website.label, target: '_blank'})));
+				});
+			}
+			
+			console.log(base);
+			console.log(me.infoWindow);
+			me.infoWindow.setContent(base[0]);
+			
+			console.log("e:",e);
+			//either position where user clicked, or midpoint of line
+			if(e)
+				me.infoWindow.setPosition(e.latLng);
+			else {
+				
+				var startLatLng = new google.maps.LatLng(from.latitude, from.longitude); 
+				var endLatLng = new google.maps.LatLng(to.latitude, to.longitude);
+				
+				var midLatLng = me.getMidPoint(startLatLng, endLatLng);
+			me.infoWindow.setPosition(midLatLng);
+			}
+			me.infoWindow.open(me.map);
+	});
+
+ 	
+ 	
     
  	
  	
@@ -727,6 +756,7 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
     
     return pl;
 };
+
 
 Map.prototype.createPullMarkers = function(line, link) {
 	this.clearEditLine();
