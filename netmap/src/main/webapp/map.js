@@ -522,7 +522,7 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
  	google.maps.event.addListener(pl, 'click', function(e) {
 
  		console.log('Click On Link');
-			var base = $("<div>", {style: 'display: inline-block; padding: 5px; padding-bottom: 20px;'});
+			var base = $("<div>", {style: 'display: block; padding: 5px; padding-bottom: 20px;'});
  			$("<div>", {style: 'height: 25px;'}).html("<strong>"+from.name+" <img src='images/arrow.gif' width=25 height=15 style='vertical-align: bottom;'/> "+to.name+"</strong>").appendTo(base);
  			$("<hr>").appendTo(base);
  			
@@ -683,14 +683,29 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 	 			
  			}
  			else {
- 				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px;'}).appendTo(base);
+ 				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px; width:100%;'}).appendTo(base);
  				$("<div>").html("<B>Speed:</B> " + link.connectionSpeed.speed).appendTo(div);
  				$("<div>").html("<B>Network:</B> " + link.network.name).appendTo(div);
- 				$("<div>").html("<B>Links:</B> ").appendTo(div);
- 				var linksDiv = $("<div>").appendTo(div);
+
+ 				var graphs = [];
+ 				var websites = [];
  				$.each(link.websites, function(index, website) {
- 					linksDiv.append($("<div>", {style: 'padding-left:25px;'}).append($("<a>", {href: website.url, text: website.label, target: '_blank'})));
+ 					if (!website.isGraph)
+ 						websites.push(website);
+ 					else  
+ 						graphs.push(website);
  				});
+
+ 				if (websites.length > 0) {
+ 	 				var linksDiv = $("<div>").html("<B>Links:</B> ").appendTo(div);
+ 	 				$.each(websites, function(index, website) {
+ 	 					linksDiv.append($("<a>", {href: website.url, text: website.label, target: '_blank'}));
+ 	 				});
+ 				}
+ 				
+ 				if (graphs.length > 0) {
+ 					$("<img>", {src: graphs[0].url, style: 'width:600px;'}).appendTo(div);
+ 				}
  			}
  			
  			console.log(base);
