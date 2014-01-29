@@ -710,14 +710,29 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
  			
 			}
 			else {
-				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px;'}).appendTo(base);
-				$("<div>").html("<B>Speed:</B> " + link.connectionSpeed.speed).appendTo(div);
-				$("<div>").html("<B>Network:</B> " + link.network.name).appendTo(div);
-				$("<div>").html("<B>Links:</B> ").appendTo(div);
-				var linksDiv = $("<div>").appendTo(div);
-				$.each(link.websites, function(index, website) {
-					linksDiv.append($("<div>", {style: 'padding-left:25px;'}).append($("<a>", {href: website.url, text: website.label, target: '_blank'})));
-				});
+				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px; width:100%;'}).appendTo(base);
+ 				$("<div>").html("<B>Speed:</B> " + link.connectionSpeed.speed).appendTo(div);
+ 				$("<div>").html("<B>Network:</B> " + link.network.name).appendTo(div);
+
+ 				var graphs = [];
+ 				var websites = [];
+ 				$.each(link.websites, function(index, website) {
+ 					if (!website.isGraph)
+ 						websites.push(website);
+ 					else  
+ 						graphs.push(website);
+ 				});
+
+ 				if (websites.length > 0) {
+ 	 				var linksDiv = $("<div>").html("<B>Links:</B> ").appendTo(div);
+ 	 				$.each(websites, function(index, website) {
+ 	 					linksDiv.append($("<a>", {href: website.url, text: website.label, target: '_blank'}));
+ 	 				});
+ 				}
+ 				
+ 				if (graphs.length > 0) {
+ 					$("<img>", {src: graphs[0].url, style: 'width:600px;'}).appendTo(div);
+ 				}
 			}
 			
 			console.log(base);
