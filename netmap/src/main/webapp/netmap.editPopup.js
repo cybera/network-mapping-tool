@@ -102,7 +102,7 @@
         				
         							delete me.dataById[id];
         							$.getJSON(me.options.urlList, function(result) {
-        								me.options.onRefreshList.call(me, result);
+        								me.options.onListRefresh.call(me, result);
         							});
 
         						});

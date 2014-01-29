@@ -378,12 +378,12 @@ function deleteRow(id) {
 		title : 'Confirm Delete',
 		buttons : {
 			"Yes" : function() {
-				deleteOrganization(id);
-
+				deleteOrganization(id, function() {
+					map.removeMarker(indexedPlaces[id].marker);
+					$("#placeTable").jqGrid('delRowData', id);
+					delete indexedPlaces[id];
+				});
 				$(this).dialog("close");
-				map.removeMarker(indexedPlaces[id].marker);
-				$("#placeTable").jqGrid('delRowData', id);
-				delete indexedPlaces[id];
 			},
 			"No" : function() {
 				$(this).dialog("close");

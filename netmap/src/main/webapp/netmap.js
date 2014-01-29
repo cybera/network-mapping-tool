@@ -72,14 +72,11 @@ function showToast(msg, sticky, type) {
 }
 
 function handleError(request) {
-	showToast(getError(request), false, 'error');
+	showToast(getError(request), true, 'error');
 }
 
 function getError(request) {
-	var message = "Error Occurred!";
-	
-	if (request.status) message += '  Error Code: [' + request.status + ']';
-	if (request.statusText) message += '  Error Message: [' + request.statusText + ']';
+	var message = "";
 	
 	if (request.responseText) {
 		var text = request.responseText;
@@ -87,10 +84,14 @@ function getError(request) {
 			text = JSON.parse(request.responseText).message;
 		} catch(e) {}
 		if (text && text.length > 0) {
-			message += '  Response Text: ' + text;
+			message += text;
 		}
 	}
 
+	if (request.status) message += '<br/><br/>  Error Code: [' + request.status + ']';
+	if (request.statusText) message += '<br/>  Error Message: [' + request.statusText + ']';
+	
+	
 	return message;
 }
 

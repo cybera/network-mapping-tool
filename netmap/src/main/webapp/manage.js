@@ -183,6 +183,9 @@ $("#speedDialog").editPopup({
 				sortable: true,
 			}
 		},
+		onListRefresh: function(list) {
+			refreshMapStyles();
+		},
 		displayAttribute: 'name',
 		defaultObject: {name: '', style: '[]'},
 	 	appendLayout: '<div>Build custom map styles JSON at:<br/><small><a target="_new" href="http://gmaps-samples-v3.googlecode.com/svn/trunk/styledmaps/wizard/index.html">http://gmaps-samples-v3.googlecode.com/svn/trunk/styledmaps/wizard/index.html</a></small></div>'

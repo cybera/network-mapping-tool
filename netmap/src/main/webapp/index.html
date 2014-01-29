@@ -21,6 +21,8 @@
 		<script type="text/javascript" src="js/jquery.contextMenu.js"></script>
 		<script type="text/javascript" src="netmap.editPopup.js"></script>
 		
+		<script type="text/javascript" src="js/jquery.cookie.js"></script>
+		
 		<link rel="stylesheet" href="css/jquery.contextMenu.css" type="text/css" />
 		 
 		<script type="text/javascript" src="js/jquery.colorpicker.js"></script>
@@ -225,25 +227,31 @@ function createMapController() {
 	
 	$("#mapStyleSelect").change(function() {
 		var select = $(this);
-		var style = JSON.parse(select.find('[value="'+select.val()+'"]').data("mapstyle"));
+		var itm = select.find('[value="'+select.val()+'"]').data("mapstyle");
+		var style = JSON.parse(itm.style);
+		console.log("itm: ",itm);
 		map.map.setOptions({styles: style});
 		
+		$.cookie("defaultMapStyleID", itm.uuid);
 	});
-	
-	$("#chooseMapStyleButton").button().click(function() {
-		console.log("in click...");
-		$.getJSON("ns/mapStyles", function(result) {
-			console.log("result:",result);
-			var select = $("#mapStyleSelect");
-			select.empty();
-			$.each(result, function(idx, itm) {
-				var op = $("<option>", {value:itm.name}).html(itm.name).appendTo(select);
-				op.data("mapstyle", itm.style);
-			});
-			
-			$("#mapStyleChooser").dialog("open");
+
+	refreshMapStyles();
+}
+
+function refreshMapStyles() {
+	$.getJSON("ns/mapStyles", function(result) {
+		console.log("result:",result);
+		var select = $("#mapStyleSelect");
+		select.empty();
+		var defaultId = $.cookie("defaultMapStyleID");
+		$.each(result, function(idx, itm) {
+			var op = $("<option>", {value:itm.name}).html(itm.name).appendTo(select);
+			if(itm.uuid == defaultId) {
+				op.attr("selected", "selected");
+				map.map.setOptions({styles: JSON.parse(itm.style)});
+			}
+			op.data("mapstyle", itm);
 		});
-		
 	});
 }
 
@@ -317,13 +325,10 @@ function setValue(elem, operation, value) {
 				<div id="mapNetworks"></div>
 			</div>
 			
-			<button id="chooseMapStyleButton">Map Style</button>
+			<select id="mapStyleSelect"></select>
 			
 		</div>
 		
-		<div id="mapStyleChooser">
-			<select id="mapStyleSelect"></select>
-		</div>
 		
 	</body>
 

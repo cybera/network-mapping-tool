@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -85,8 +86,11 @@ public class NetworkConnectionController extends BaseController {
 	@RequestMapping(value = "network/{uuid}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	void deleteNetwork(@PathVariable("uuid") String uuid) throws Exception {
-
+		try {
 		service.deleteNetwork(uuid);
+	} catch(DataIntegrityViolationException e) {
+		throw new Exception("Cannot Remove: One or more network connections depends on this network, update those connections and try again.");
+	}
 
 	}
 
@@ -110,8 +114,11 @@ public class NetworkConnectionController extends BaseController {
 	@RequestMapping(value = "speed/{uuid}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	void deleteSpeed(@PathVariable("uuid") String uuid) throws Exception {
-
-		service.deleteConnectionSpeed(uuid);
+		try {
+			service.deleteConnectionSpeed(uuid);
+		} catch(DataIntegrityViolationException e) {
+			throw new Exception("Cannot Remove: One or more network connections depends on this speed, update those connections and try again.");
+		}
 
 	}
 

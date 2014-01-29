@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,9 +52,11 @@ public class OrganizationController extends BaseController {
 	@RequestMapping(value = "/{uuid}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	void delete(@PathVariable("uuid") String uuid) throws Exception {
-
-		service.delete(uuid);
-
+		try {
+			service.delete(uuid);
+		} catch(DataIntegrityViolationException e) {
+			throw new Exception("You must remove all network connections that depend on this organization before it can be removed.");
+		}
 	}
 
 	@RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
