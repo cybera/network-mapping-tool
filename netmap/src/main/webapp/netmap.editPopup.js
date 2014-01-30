@@ -59,7 +59,17 @@
         			onSelectRow: function(id, status, event){
         				//check if edit bailed
         				if(id && id!==lastSel){
-        					me.table.jqGrid('restoreRow',lastSel);
+        					if(lastSel) {
+        						console.log("lastsel:",lastSel);
+        						console.log("id:",id);
+        						
+        						
+        						me._confirmSave(lastSel, function() {
+        							lastSel = undefined;
+        						});
+        					
+        					}
+        					
         				}
         			},
         			ondblClickRow: function (id, ri, ci, e) {
@@ -122,6 +132,10 @@
         			width: me.options.width,
         			height: me.options.height,
         			buttons: {'Done': function() {
+        					if(me.table.find("tr[editable='1']").length > 0) {
+        						me._confirmSave(me.table.find("tr[editable='1']").attr("id"));
+        					}
+        				
         					$(this).dialog("close");
         				}
         			}
@@ -151,6 +165,38 @@
     		this._setOptions(this.options);
         },
 
+        _confirmSave: function(lastSel, callback) {
+        	var me = this;
+			var name = "";
+			if(me.dataById[lastSel].name)
+				name = " to "+me.dataById[lastSel].name;
+
+        	$.confirm("Do you want to save changes"+name+"?",
+					{
+					buttons : {
+						"Yes" : function() {
+							console.log("calls saveRow",lastSel);
+							me.table.jqGrid('saveRow', lastSel, {
+								url : 'clientArray',
+								keys : true,
+								aftersavefunc : function() {
+									me._saveit(lastSel);
+								}
+							});
+							$(this).dialog("close");
+	
+						},
+						"No" : function() {
+							me.table.jqGrid('restoreRow', lastSel);
+							if(callback)
+								callback();
+							
+							$(this).dialog("close");
+						}
+					}
+					});
+        },
+        
         _destroy: function () {
         },
 
@@ -175,23 +221,30 @@
 		    	url: 'clientArray',
 		    	keys: true,
 		    	aftersavefunc: function(row) {
-		    		
-		    		//Get the new updated data (reference in me.data) & update the index
-		    		var newdata = $.grep(me.data, function(obj, idx) {
-		    			   if(obj.uuid == row)
-		    			      return true;
-		    			})[0];
-
-		    		//jqGrid appends id to the object on adds, kill it as we don't want it
-		    		delete newdata.id;
-		    		me.dataById[row] = newdata; 
-		    		
-		    		console.log("after save func, call post: ",me.options.url,newdata);
-		    		post(me.options.url, me.dataById[row], 'json');
-		    		// post(me.options.url, d, 'json');
+		    		me._saveit(row);
 		    	}
 		    });
+        },
+        
+        _saveit: function(row) {
+        	var me = this;
+        	
+    		//Get the new updated data (reference in me.data) & update the index
+    		var newdata = $.grep(me.data, function(obj, idx) {
+    			   if(obj.uuid == row)
+    			      return true;
+    			})[0];
+
+    		//jqGrid appends id to the object on adds, kill it as we don't want it
+    		delete newdata.id;
+    		me.dataById[row] = newdata; 
+    		
+    		console.log("after save func, call post: ",me.options.url,newdata);
+    		post(me.options.url, me.dataById[row], 'json');
+    		// post(me.options.url, d, 'json');
         }
+        
+        
         
 
     });

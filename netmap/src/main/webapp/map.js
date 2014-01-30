@@ -261,7 +261,8 @@ Map.prototype.zoomTo = function(marker) {
 	var latlngbounds = new google.maps.LatLngBounds();
 	latlngbounds.extend(marker.getPosition());
 	this.map.panTo(latlngbounds.getCenter());
-	 google.maps.event.trigger(marker, 'click');
+	//google.maps.event.trigger(marker, 'click');
+
 //	this.map.fitBounds(latlngbounds); 
 }
 

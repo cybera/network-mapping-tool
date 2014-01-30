@@ -209,7 +209,7 @@ function setupTable() {
 	console.log("colModel:", colModel);
 
 	tableOptions = {
-
+//			multiselect: true,
 		grouping : true,
 		groupingView : {
 			groupField : [ 'province' ],
@@ -227,10 +227,75 @@ function setupTable() {
 		scroll : true,
 		scrollrows : true,
 		// pager: '#pagernav',
+
+
+//		gridComplete: function() {
+//			$(this).jqGrid('hideCol', 'cb');
+//		},
+//		beforeSelectRow: function (rowid, e) {
+//            if (!e.ctrlKey && !e.shiftKey) {
+//                $(this).jqGrid('resetSelection');
+//            }
+//            else if (e.shiftKey) {
+//                var initialRowSelect = $(this).jqGrid('getGridParam', 'selrow');
+//                $(this).jqGrid('resetSelection');
+//
+//                var CurrentSelectIndex = $(this).jqGrid('getInd', rowid);
+//                var InitialSelectIndex = $(this).jqGrid('getInd', initialRowSelect);
+//                var startID = "";
+//                var endID = "";
+//                if (CurrentSelectIndex > InitialSelectIndex) {
+//                    startID = initialRowSelect;
+//                    endID = rowid;
+//                }
+//                else {
+//                    startID = rowid;
+//                    endID = initialRowSelect;
+//                }
+//
+//                	console.log(this);
+//                var shouldSelectRow = false;
+//                $.each($(this).jqGrid("getDataIDs"), function(_, id){
+//                		console.log("id:",id);
+//                    if ((shouldSelectRow = id == startID || shouldSelectRow)){
+//                    	console.log("call setSelection",id,false);
+//                      $("#placeTable").jqGrid('setSelection', id, false);
+//                    }
+//                    return id != endID;                        
+//                });
+//            }
+//            return true;
+//        },
+		
 		onSelectRow : function(id, status, event) {
 			// check if edit bailed
 			if (id && id !== lastsel) {
-				$("#placeTable").jqGrid('restoreRow', lastsel);
+				if(lastsel) {
+					console.log("lastsel:",lastsel);
+					console.log("id:",id);
+				$.confirm("Do you want to save changes to "+indexedPlaces[lastsel].name+"?",
+						{
+						buttons : {
+							"Yes" : function() {
+								console.log("calls saveRow",id);
+								$("#placeTable").jqGrid('saveRow', lastsel, {
+									url : 'clientArray',
+									keys : true,
+									aftersavefunc : function() {
+										saveOrg(lastsel);
+									}
+								});
+								$(this).dialog("close");
+		
+							},
+							"No" : function() {
+								$("#placeTable").jqGrid('restoreRow', lastsel);
+								lastsel = undefined;
+								$(this).dialog("close");
+							}
+						}
+						});
+				}
 			}
 
 			// show corresponding infowindow on map
@@ -403,18 +468,22 @@ function editRow(id) {
 						url : 'clientArray',
 						keys : true,
 						aftersavefunc : function() {
-							// update back to objects
-							var pos = indexedPlaces[id].marker.getPosition();
-							indexedPlaces[id].geom = {
-								type : "Point",
-								coordinates : [ pos.lng(), pos.lat() ]
-							};
-							indexedPlaces[id].organizationType = orgTypesByType[indexedPlaces[id].organizationType];
-
-							mergeOrganization(indexedPlaces[id]);
-							map.updatePlace(indexedPlaces[id]);
+							saveOrg(id);
 						}
 					});
+}
+
+function saveOrg(id) {
+	// update back to objects
+	var pos = indexedPlaces[id].marker.getPosition();
+	indexedPlaces[id].geom = {
+		type : "Point",
+		coordinates : [ pos.lng(), pos.lat() ]
+	};
+	indexedPlaces[id].organizationType = orgTypesByType[indexedPlaces[id].organizationType];
+
+	mergeOrganization(indexedPlaces[id]);
+	map.updatePlace(indexedPlaces[id]);
 }
 
 function addRow() {
@@ -477,7 +546,14 @@ function handleDragEnd(place) {
 }
 
 function handleSelectPlace(id) {
-	$("#placeTable").jqGrid('setSelection', id);
+//	var selected = $("#placeTable").jqGrid('getGridParam', 'selarrrow');
+//	var alreadySelected = $.grep(selected, function(obj, idx) {
+//		if(obj == id)
+//			return true;
+//	});
+//	
+//	if(!alreadySelected[0])
+		$("#placeTable").jqGrid('setSelection', id);
 }
 
 //@ sourceURL=edit.js
