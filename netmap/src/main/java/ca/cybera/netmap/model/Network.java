@@ -26,6 +26,9 @@ public class Network {
 	@Column(name = "colour", unique = true, nullable = false)
 	private String colour;
 
+	@Column(name = "url")
+	private String url;
+
 	public Network() {
 	}
 
@@ -56,6 +59,14 @@ public class Network {
 
 	public void setColour(String colour) {
 		this.colour = colour;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
 }

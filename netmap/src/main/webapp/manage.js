@@ -102,6 +102,11 @@ $(document).ready(function() {
 			name: 'name', 
 			sortable: true
 		},
+	    "URL": {
+				editable: true, 
+				name: 'url', 
+				sortable: true
+		},
 		"Colour": {
 			editable: true, 
 			name: 'colour', 

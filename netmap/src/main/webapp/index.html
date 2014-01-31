@@ -214,7 +214,15 @@ function createMapController() {
 	$.each(networks, function(index, network) {
 		var checkbox = $('<input>').attr({ type: 'checkbox', id: network.uuid, checked: true});
 		var style = 'color: ' + network.colour + ';';
-		$("#mapNetworks").append($('<div>', {style: 'margin:3px;'})).append($('<label>', {style: style}).html(network.name).prepend(checkbox));
+		var label = $('<label>', {style: style}).html(network.name);
+		$("#mapNetworks").append($('<div>', {style: 'margin:3px;'})).append(checkbox).append(label);
+		
+		if (network.url != null) {
+			label.css('cursor', 'pointer');
+			label.click(function() {
+				window.open(network.url);
+			});
+		}
 
 		checkbox.change(function() {
 			var selected = this.checked;

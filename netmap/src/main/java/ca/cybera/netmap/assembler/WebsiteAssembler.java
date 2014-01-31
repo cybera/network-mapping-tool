@@ -22,6 +22,9 @@ public class WebsiteAssembler {
 		website.setLabel(dto.getLabel());
 		website.setUrl(dto.getUrl().replace(graphUrl, "{graphUrl}"));
 		
+		if (!dto.getUrl().contains(graphUrl) && !dto.getUrl().startsWith("http://"))
+			website.setUrl("http://" + website.getUrl());
+		
 		return website;
 	}
 	

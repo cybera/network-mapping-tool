@@ -36,6 +36,10 @@ public class OrganizationAssembler {
 		org.setPhone(dto.getPhone());
 		org.setNotes(dto.getNotes());
 		org.setLogoUrl(dto.getLogoUrl());
+		
+		if (dto.getLogoUrl() != null && !dto.getLogoUrl().startsWith("http://")) {
+			dto.setLogoUrl("http://" + dto.getLogoUrl());
+		}
 
 		return org;
 	}
