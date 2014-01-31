@@ -76,6 +76,9 @@ public class Organization {
 	@Column(name = "notes")
 	private String notes;
 
+	@Column(name = "logo_url")
+	private String logoUrl;
+
 	public String getUUID() {
 		return UUID;
 	}
@@ -212,6 +215,14 @@ public class Organization {
 		this.notes = notes;
 	}
 
+	public String getLogoUrl() {
+		return logoUrl;
+	}
+
+	public void setLogoUrl(String logoUrl) {
+		this.logoUrl = logoUrl;
+	}
+
 	@Override
 	public String toString() {
 		return "Organization [UUID=" + UUID + ", organizationType=" + organizationType + ", website=" + website + ", name=" + name + ", frenchName=" + frenchName + ", campus=" + campus
@@ -219,5 +230,4 @@ public class Organization {
 				+ connected + ", comments=" + comments + ", geom=" + geom + ", memberSince=" + memberSince + ", notes=" + notes + "]";
 	}
 
-	
 }

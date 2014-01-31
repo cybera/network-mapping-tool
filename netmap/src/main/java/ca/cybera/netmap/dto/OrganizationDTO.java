@@ -22,6 +22,7 @@ public class OrganizationDTO {
 	private GeometryDTO geom;
 	private Date memberSince;
 	private String notes;
+	private String logoUrl;
 
 	public String getUUID() {
 		return UUID;
@@ -157,6 +158,14 @@ public class OrganizationDTO {
 
 	public void setNotes(String notes) {
 		this.notes = notes;
+	}
+
+	public String getLogoUrl() {
+		return logoUrl;
+	}
+
+	public void setLogoUrl(String logoUrl) {
+		this.logoUrl = logoUrl;
 	}
 
 }

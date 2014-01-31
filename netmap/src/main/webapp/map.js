@@ -155,8 +155,11 @@ function Map() {
      	this.oms.addListener('click', function(marker) {
 //     		google.maps.event.addListener(marker, 'click', function() {
      			var base = $("<div>", {style: 'display: inline-block; padding: 5px; padding-bottom: 20px;'});
-     			$("<div>").html("<strong>"+indexedPlaces[marker.placename].name+"</strong>").appendTo(base);
+     			var header = $("<div>").html("<strong>"+indexedPlaces[marker.placename].name+"</strong>").appendTo(base);
      			$("<hr>").appendTo(base);
+     			if (indexedPlaces[marker.placename].logoUrl != null) {
+     				$("<img>", {src: indexedPlaces[marker.placename].logoUrl, width: '50px'}).prependTo(header);
+     			}
      			
      			if(marker.selectCallback)
      				marker.selectCallback(marker.placename);

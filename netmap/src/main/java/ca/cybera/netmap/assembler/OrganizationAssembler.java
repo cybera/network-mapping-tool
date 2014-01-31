@@ -35,6 +35,7 @@ public class OrganizationAssembler {
 		org.setWebsite(dto.getWebsite());
 		org.setPhone(dto.getPhone());
 		org.setNotes(dto.getNotes());
+		org.setLogoUrl(dto.getLogoUrl());
 
 		return org;
 	}
@@ -59,6 +60,7 @@ public class OrganizationAssembler {
 		dto.setPhone(org.getPhone());
 		dto.setWebsite(org.getWebsite());
 		dto.setNotes(org.getNotes());
+		dto.setLogoUrl(org.getLogoUrl());
 
 		return dto;
 	}
