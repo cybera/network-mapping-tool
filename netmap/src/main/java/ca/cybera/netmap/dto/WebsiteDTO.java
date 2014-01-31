@@ -8,6 +8,7 @@ public class WebsiteDTO {
 	private String UUID;
 	private String url;
 	private String label;
+	private Boolean isGraph;
 
 	public String getUUID() {
 		return UUID;
@@ -31,6 +32,14 @@ public class WebsiteDTO {
 
 	public void setLabel(String label) {
 		this.label = label;
+	}
+
+	public Boolean getIsGraph() {
+		return isGraph;
+	}
+
+	public void setIsGraph(Boolean isGraph) {
+		this.isGraph = isGraph;
 	}
 
 }

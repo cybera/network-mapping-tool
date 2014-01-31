@@ -31,6 +31,7 @@ public class WebsiteAssembler {
 		dto.setUUID(website.getUUID());
 		dto.setLabel(website.getLabel());
 		dto.setUrl(website.getUrl().replace("{graphUrl}", graphUrl));
+		dto.setIsGraph(website.getUrl().contains("{graphUrl}"));
 		
 		return dto;
 	}

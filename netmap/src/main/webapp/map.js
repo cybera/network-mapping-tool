@@ -727,12 +727,46 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
  				if (websites.length > 0) {
  	 				var linksDiv = $("<div>").html("<B>Links:</B> ").appendTo(div);
  	 				$.each(websites, function(index, website) {
- 	 					linksDiv.append($("<a>", {href: website.url, text: website.label, target: '_blank'}));
+ 	 					linksDiv.append($("<a>", {href: website.url, text: website.label, target: '_blank', style: 'padding: 3px;'}));
  	 				});
  				}
  				
  				if (graphs.length > 0) {
- 					$("<img>", {src: graphs[0].url, style: 'width:600px;'}).appendTo(div);
+
+ 					var graphIndex = 0;
+
+ 					var graphDiv = $("<div>", {style: 'width: 600px; text-align:center; margin-left: auto ; margin-right: auto ; margin-top:10px; margin-bottom: 3px;'}).appendTo(div);
+ 					var previous = $("<button>", {text: '<', 'class': 'btn'}).appendTo(graphDiv);
+ 					var graphName = $("<span>", {style: 'padding: 10px; font-size:1.1em; font-weight: bold;'}).html(graphs[0].label).appendTo(graphDiv);					
+ 					var next = $("<button>", {text: '>', 'class': 'btn'}).appendTo(graphDiv);
+ 					var graphImage = $("<img>", {src: graphs[0].url, style: 'width:600px;cursor: pointer;'}).appendTo(div);
+ 					
+ 					if (graphs.length == 1) {
+ 						next.hide();
+ 						previous.hide();
+ 					} else {
+ 						previous.attr('disabled', 'disabled');
+ 					}
+ 					
+ 					graphImage.click(function() {
+ 						window.open(graphs[graphIndex].url);
+ 					});
+ 					
+ 					next.click(function() {
+ 						graphIndex++;
+ 						graphName.html(graphs[graphIndex].label);
+ 						graphImage.attr('src', graphs[graphIndex].url);
+ 						if (graphIndex + 1 == graphs.length) next.attr('disabled', 'disabled'); else next.removeAttr('disabled');
+ 						if (graphIndex > 0) previous.removeAttr('disabled'); else previous.attr('disabled', 'disabled');
+ 					});
+ 					
+ 					previous.click(function() {
+ 						graphIndex--;
+ 						graphName.html(graphs[graphIndex].label);
+ 						graphImage.attr('src', graphs[graphIndex].url);
+ 						if (graphIndex + 1 == graphs.length) next.attr('disabled', 'disabled'); else next.removeAttr('disabled');
+ 						if (graphIndex > 0) previous.removeAttr('disabled'); else previous.attr('disabled', 'disabled');
+ 					});
  				}
 			}
 			
