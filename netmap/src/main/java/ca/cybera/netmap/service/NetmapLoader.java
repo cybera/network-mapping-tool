@@ -41,22 +41,22 @@ public class NetmapLoader {
 		if (organizationService.getTypes().size() > 0) return;
 		
 		try {
-			organizationService.save(new OrganizationType("K-12", "#3CDE1F"));
+			organizationService.save(new OrganizationType("K-12", "images/k-12-icon.png", "images/icon_k-12-icon.png"));
 		} catch (Exception e) {
 		}
 
 		try {
-			organizationService.save(new OrganizationType("PSI", "#FA0526"));
+			organizationService.save(new OrganizationType("PSI", "images/post-second.png", "images/icon_post-second.png"));
 		} catch (Exception e) {
 		}
 
 		try {
-			organizationService.save(new OrganizationType("Non for Profit", "#0577FA"));
+			organizationService.save(new OrganizationType("Non for Profit", "images/non-profit.png", "images/icon_non-profit.png"));
 		} catch (Exception e) {
 		}
 
 		try {
-			organizationService.save(new OrganizationType("For Profit", "#030303"));
+			organizationService.save(new OrganizationType("For Profit", "images/profit.png", "images/icon_profit.png"));
 		} catch (Exception e) {
 		}
 

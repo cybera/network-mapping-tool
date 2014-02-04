@@ -1,3 +1,5 @@
+var lastsel;
+
 $(document).ready(function() {
 	console.log('Loading Edit Mode');
 
@@ -203,7 +205,6 @@ function setupTable() {
 	});
 
 	var w = $(window).width();
-	var lastsel;
 
 	console.log("colNames:", colNames);
 	console.log("colModel:", colModel);
@@ -469,11 +470,16 @@ function editRow(id) {
 						keys : true,
 						aftersavefunc : function() {
 							saveOrg(id);
+						},
+						afterrestorefunc: function() {
+							
+							lastsel = undefined;
 						}
 					});
 }
 
 function saveOrg(id) {
+	lastsel = undefined;
 	// update back to objects
 	var pos = indexedPlaces[id].marker.getPosition();
 	indexedPlaces[id].geom = {

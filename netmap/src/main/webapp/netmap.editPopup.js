@@ -2,6 +2,8 @@
 
     $.widget( "netmap.editPopup" , {
 
+    	lastSel: undefined,
+    		
         //Options to be used as defaults
         options: {
         	title: '',
@@ -11,7 +13,8 @@
         	displayAttribute: '',
         	width: 'auto',
         	height: 'auto',
-        	onListRefresh: function() {}
+        	onListRefresh: function() {},
+        	change: function() {}
         },
         
         _create: function () {
@@ -43,7 +46,6 @@
         	console.log("Col Model:",colModel);
         	console.log("Col Names:",colNames);
         	
-        	var lastSel;
         	var tableOptions = {
         			datatype: "local",
         			sortable: true,
@@ -58,15 +60,13 @@
         		   	scrollrows: true,
         			onSelectRow: function(id, status, event){
         				//check if edit bailed
-        				if(id && id!==lastSel){
-        					if(lastSel) {
-        						console.log("lastsel:",lastSel);
+        				if(id && id!==me.lastSel){
+        					if(me.lastSel) {
+        						console.log("lastsel:",me.lastSel);
         						console.log("id:",id);
         						
         						
-        						me._confirmSave(lastSel, function() {
-        							lastSel = undefined;
-        						});
+        						me._confirmSave();
         					
         					}
         					
@@ -75,8 +75,7 @@
         			ondblClickRow: function (id, ri, ci, e) {
         				//edit on double click
 
-        				lastSel=id;
-        				
+        				me.lastSel=id;
         				me.editRow(id);
         				    
         			}
@@ -165,31 +164,30 @@
     		this._setOptions(this.options);
         },
 
-        _confirmSave: function(lastSel, callback) {
+        _confirmSave: function() {
         	var me = this;
 			var name = "";
-			if(me.dataById[lastSel].name)
-				name = " to "+me.dataById[lastSel].name;
+			if(me.dataById[me.lastSel].name)
+				name = " to "+me.dataById[me.lastSel].name;
 
         	$.confirm("Do you want to save changes"+name+"?",
 					{
 					buttons : {
 						"Yes" : function() {
-							console.log("calls saveRow",lastSel);
-							me.table.jqGrid('saveRow', lastSel, {
+							console.log("calls saveRow",me.lastSel);
+							me.table.jqGrid('saveRow', me.lastSel, {
 								url : 'clientArray',
 								keys : true,
-								aftersavefunc : function() {
-									me._saveit(lastSel);
+								aftersavefunc : function(row) {
+									me._saveit(row);
 								}
 							});
 							$(this).dialog("close");
 	
 						},
 						"No" : function() {
-							me.table.jqGrid('restoreRow', lastSel);
-							if(callback)
-								callback();
+							me.table.jqGrid('restoreRow', me.lastSel);
+							me.lastSel = undefined;
 							
 							$(this).dialog("close");
 						}
@@ -239,8 +237,12 @@
     		delete newdata.id;
     		me.dataById[row] = newdata; 
     		
+    		me.lastSel = undefined;
     		console.log("after save func, call post: ",me.options.url,newdata);
-    		post(me.options.url, me.dataById[row], 'json');
+    		post(me.options.url, me.dataById[row], 'json', function(record) {
+    			if(me.options.change)
+    				me.options.change.call(this, record);
+    		});
     		// post(me.options.url, d, 'json');
         }
         

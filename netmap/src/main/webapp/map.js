@@ -368,25 +368,28 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 	if(bounce) 
 		animation = google.maps.Animation.BOUNCE;
 		
-	var colour = "FFFFFF";
+	var icon = undefined;
 	if(place.organizationType)
-		colour = place.organizationType.colour;
+		icon = place.organizationType.mapIcon;
 	
-	var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + colour.replace('#', ''),
-	        new google.maps.Size(21, 34),
-	        new google.maps.Point(0,0),
-	        new google.maps.Point(10, 34));
-	// var icon = $.extend({}, this.circle, {fillColor: colour});
+	var pinImage = new google.maps.MarkerImage(icon,
+		        new google.maps.Size(30, 30),
+		        new google.maps.Point(0,0),
+		        new google.maps.Point(15, 15));
+		// var icon = $.extend({}, this.circle, {fillColor: colour});
+	
 	
 	var marker = new google.maps.Marker({
 		position: ll,
 		map: this.map,
-		icon: pinImage,
 		zIndex: 100,
 		draggable: editMode,
 		animation: animation
 		
 	});
+	
+	if(icon)
+		marker.setIcon(pinImage);
 	
 	if (place.organizationType)
 		marker.set("orgType", place.organizationType.uuid);
@@ -564,7 +567,7 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
  			var select = $("<select>", {id: 'speedSelect'}).appendTo(speedDiv);
  			$.each(indexedLinkTypes, function(idx, itm) {
  				var option = $("<option>", {value:itm.speed}).html(itm.speed);
- 				if(link.connectionSpeed.speed == itm.connectionSpeed)
+ 				if(link.connectionSpeed.speed == itm.speed)
  					option.attr("selected", "selected");
  				option.appendTo(select);
   			});

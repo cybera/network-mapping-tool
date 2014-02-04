@@ -45,35 +45,20 @@ $(document).ready(function() {
 		     	key: true
 		     },
 		     "Organization Type": {
-				editable: true, 
-				name: 'type', 
-				sortable: true
-			},
-			"Colour": {
-				editable: true, 
-				name: 'colour', 
-				sortable: true,
-				formatter: colorFormatter,
-				// unformat: colorUnformatter,
-				edittype: 'custom',
-				editoptions: {
-					custom_element: function(value, options) {
-						console.log(value, options);
-						var $span = $(value);
-						
-						var input = $("<input>", {type: 'input', value: $span.css("background-color")}).colorpicker({
-							colorFormat: "RGB"
-						});
-						return input[0];
-						
-					},
-					custom_value: function(elem) {
-					 	var val = $(elem).val();
-					 	console.log("val: ", val);
-					 	return val;
+					editable: true, 
+					name: 'type', 
+					sortable: true
+				},
+		     "Legend Icon URL": {
+					editable: true, 
+					name: 'legendIcon', 
+					sortable: true
+				},
+			     "Map Icon URL": {
+						editable: true, 
+						name: 'mapIcon', 
+						sortable: true
 					}
-				}
-			}
 		},
 		onListRefresh: function(list) {
 			organizationTypes = list;
@@ -135,6 +120,9 @@ $(document).ready(function() {
 	},
 	onRefreshList: function(list) {
 		networks = list;
+	},
+	change: function(network) {
+		console.log("should update lines on map/legend for network: ",network);
 	},
 	displayAttribute: 'name',
 	defaultObject: {name: '', colour: '#FFFFFF'}

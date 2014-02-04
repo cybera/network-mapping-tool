@@ -199,35 +199,66 @@ function createMapController() {
 	var me = this;
 	
 	$.each(organizationTypes, function(index, type) {
-		var checkbox = $('<input>').attr({ type: 'checkbox', id: type.uuid, checked: true});
-		var style = 'color: ' + type.colour + ';';
-		$("#mapOrgTypes").append($('<div>', {style: 'margin:3px;'})).append($('<label>', {style : style}).html(type.type).prepend(checkbox));
+		//var checkbox = $('<input>').attr({ type: 'checkbox', id: type.uuid, checked: true});
+		//var style = 'color: ' + type.colour + ';';
+		var legendItem = $("<div>", {'class': 'legendItem', id: type.uuid}).appendTo("#mapOrgTypes");
 		
-		checkbox.change(function() {
-			var selected = this.checked;
+		$("<img>", {src: type.legendIcon, style: 'width: 50px;'}).appendTo(legendItem);
+		$("<span>", {'class': 'legendItemLabel'}).text(type.type).appendTo(legendItem);
+		
+		
+		legendItem.click(function() {
+			var opacity = $(this).css("opacity");
+			var selected = true;
+			var nopacity = 1;
+			
+			if(opacity == 1) {
+				selected = false;
+				nopacity = 0.2;	
+			}
+			
 			var id = $(this).attr('id');
-			me.map.markerVisibility(selected, id);
+ 			me.map.markerVisibility(selected, id);
+ 			$(this).css("opacity", nopacity);
+			
+			console.log($(this).attr("opacity"));
 		});
+		
+// 		$("#mapOrgTypes").append($('<div>', {style: 'margin:3px;'})).append($('<label>', {style : style}).html(type.type).prepend(checkbox));
+		
+// 		checkbox.change(function() {
+// 			var selected = this.checked;
+// 			var id = $(this).attr('id');
+// 			me.map.markerVisibility(selected, id);
+// 		});
 	})
 
 	
 	$.each(networks, function(index, network) {
-		var checkbox = $('<input>').attr({ type: 'checkbox', id: network.uuid, checked: true});
-		var style = 'color: ' + network.colour + ';';
-		var label = $('<label>', {style: style}).html(network.name);
-		$("#mapNetworks").append($('<div>', {style: 'margin:3px;'})).append(checkbox).append(label);
+		var legendItem = $("<div>", {'class': 'legendItem', id: network.uuid}).appendTo("#mapNetworks");
 		
-		if (network.url != null) {
-			label.css('cursor', 'pointer');
-			label.click(function() {
-				window.open(network.url);
-			});
-		}
-
-		checkbox.change(function() {
-			var selected = this.checked;
+		$("<div>", {style: 'display: inline-block; margin:10px; width: 30px; height: 30px; background-color:'+network.colour}).appendTo(legendItem);
+		$("<span>", {'class': 'legendItemLabel'}).text(network.name).appendTo(legendItem);
+		
+		legendItem.click(function() {
+			var opacity = $(this).css("opacity");
+			var selected = true;
+			var nopacity = 1;
+			
+			if(opacity == 1) {
+				selected = false;
+				nopacity = 0.2;	
+			}
+			
 			var id = $(this).attr('id');
 			me.map.lineVisibility(selected, id);
+ 			$(this).css("opacity", nopacity);
+
+ 			//where to for this now?
+//			window.open(network.url);
+
+ 			
+			console.log($(this).attr("opacity"));
 		});
 	})
 	
@@ -313,6 +344,7 @@ function setValue(elem, operation, value) {
 
 </script>
 
+<link href='http://fonts.googleapis.com/css?family=Arimo:400,700' rel='stylesheet' type='text/css'>
 
 </head>
   
@@ -321,20 +353,24 @@ function setValue(elem, operation, value) {
 		<div id="edit_canvas"></div>
 
 		<div id="mapController" class="mapController">
-			<input id="searchText" placeholder="Search Location"></input>
 			
-			<div style="padding:5px;">
-				<strong>Organization Types</strong>
-				<div id="mapOrgTypes"></div>
+			<div style="margin-top: 95px;margin-left: 30px;">
+				<div class="legendTitle">
+					ORGANIZATION TYPES
+				</div>
+				<div style="margin-left: 20px;"  id="mapOrgTypes"></div>
+				
+						
+				<div style="margin-top: 20px;" class="legendTitle">
+					NETWORKS
+				</div>
+				<div style="margin-left: 20px;" id="mapNetworks"></div>
+				
+	
+				<input id="searchText" placeholder="Search Location"></input>
+				<select id="mapStyleSelect"></select>
+			
 			</div>
-					
-			<div style="padding:5px; padding-top: 10px;">
-				<strong>Networks</strong>
-				<div id="mapNetworks"></div>
-			</div>
-			
-			<select id="mapStyleSelect"></select>
-			
 		</div>
 		
 		

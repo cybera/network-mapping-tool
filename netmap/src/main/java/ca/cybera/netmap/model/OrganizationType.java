@@ -22,16 +22,20 @@ public class OrganizationType {
 	
 	@Column(name = "type")
 	private String type;
+	
+	@Column(name = "mapIcon", nullable = false)
+	private String mapIcon;
 
-	@Column(name = "colour", nullable = false)
-	private String colour;
+	@Column(name = "legendIcon", nullable = false)
+	private String legendIcon;
 
 	public OrganizationType() {
 	}
 
-	public OrganizationType(String type, String colour) {
+	public OrganizationType(String type, String legendIcon, String mapIcon) {
 		this.type = type;
-		this.colour = colour;
+		this.legendIcon = legendIcon;
+		this.mapIcon = mapIcon;
 
 	}
 
@@ -43,12 +47,21 @@ public class OrganizationType {
 		this.type = type;
 	}
 
-	public String getColour() {
-		return colour;
+
+	public String getMapIcon() {
+		return mapIcon;
 	}
 
-	public void setColour(String colour) {
-		this.colour = colour;
+	public void setMapIcon(String mapIcon) {
+		this.mapIcon = mapIcon;
+	}
+
+	public String getLegendIcon() {
+		return legendIcon;
+	}
+
+	public void setLegendIcon(String legendIcon) {
+		this.legendIcon = legendIcon;
 	}
 
 	public String getUUID() {

@@ -37,14 +37,36 @@ padding-left:0px;
 }
 
 .mapController {
-	position:absolute; 
-	top:20px; 
-	left:100px; 
-	width:150px; 
-	height:300px;
-	background-color: white;
-	margin: 10px;
-	padding: 10px;
-	border: 2px outset lightgrey;
-	overflow: auto;
+	position: absolute;
+top: 20px;
+left: 100px;
+width: 314px;
+height: 733px;
+margin: 10px;
+padding: 10px;
+overflow: auto;
+background: url('images/legend.png') no-repeat;
+	
+}
+
+.legendTitle {
+	font-family: 'Arimo', sans-serif;
+	font-weight: 700;
+	font-size: 22px;
+	color: #204556;
+}
+
+.legendItem {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.legendItemLabel {
+	font-family: 'Arimo', sans-serif;
+	font-weight: 700;
+	font-size: 19px;
+	color: #204556;
+	margin-left:10px;
+	position: relative;
+	top: -20px;
 }
