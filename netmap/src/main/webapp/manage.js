@@ -68,6 +68,21 @@ $(document).ready(function() {
 				orgTypesByType[itm.type] = itm;
 			});
 		},
+		change: function(orgType) {
+			orgTypesByType[orgType.type] = orgType;
+
+			refreshOrgTypeLegend();
+			var pinImage = new google.maps.MarkerImage(orgType.mapIcon,
+			        new google.maps.Size(30, 30),
+			        new google.maps.Point(0,0),
+			        new google.maps.Point(15, 15));
+
+			$.each(map.markers, function(idx, itm) {
+				if(itm.orgType == orgType.uuid) {
+					itm.setIcon(pinImage);
+				}
+			});
+		},
 		displayAttribute: 'type',
 		defaultObject: {type: '', colour: '#FFFFFF'}
 	});
@@ -119,10 +134,24 @@ $(document).ready(function() {
 		}
 	},
 	onRefreshList: function(list) {
-		networks = list;
+		refreshNetworkLegend();
 	},
 	change: function(network) {
 		console.log("should update lines on map/legend for network: ",network);
+		
+		$.each(links, function(idx, itm) {
+			if(itm.network.uuid == network.uuid) {
+				itm.network = network;
+			}
+		});
+		
+		$.each(map.lines, function(idx, itm) {
+			if(itm.network == network.uuid) {
+				itm.setOptions({strokeColor: network.colour});
+			}
+		});
+		
+		refreshNetworkLegend();
 	},
 	displayAttribute: 'name',
 	defaultObject: {name: '', colour: '#FFFFFF'}
@@ -254,3 +283,5 @@ function showOrgDetails() {
 	
 	
 }
+
+//@ sourceURL=manage.js

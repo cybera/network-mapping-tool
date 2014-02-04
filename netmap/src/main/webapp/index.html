@@ -195,9 +195,48 @@ $(document).ready(function() {
 	
 })
 
-function createMapController() {
-	var me = this;
+function refreshNetworkLegend() {
 	
+	$.getJSON('ns/networkConnection/networks', function(result) {
+		$("#mapNetworks").empty();
+		networks = result;
+
+
+	
+	$.each(networks, function(index, network) {
+		var legendItem = $("<div>", {'class': 'legendItem', id: network.uuid}).appendTo("#mapNetworks");
+		
+		$("<div>", {style: 'display: inline-block; margin:10px; width: 30px; height: 30px; background-color:'+network.colour}).appendTo(legendItem);
+		$("<span>", {'class': 'legendItemLabel'}).text(network.name).appendTo(legendItem);
+		
+		legendItem.click(function() {
+			var opacity = $(this).css("opacity");
+			var selected = true;
+			var nopacity = 1;
+			
+			if(opacity == 1) {
+				selected = false;
+				nopacity = 0.2;	
+			}
+			
+			var id = $(this).attr('id');
+			me.map.lineVisibility(selected, id);
+ 			$(this).css("opacity", nopacity);
+
+ 			//where to for this now?
+//			window.open(network.url);
+
+ 			
+			console.log($(this).attr("opacity"));
+		});
+	})
+	});
+}
+
+function refreshOrgTypeLegend() {
+	
+	$.getJSON('ns/organization/types', function() {
+	$("#mapOrgTypes").empty();
 	$.each(organizationTypes, function(index, type) {
 		//var checkbox = $('<input>').attr({ type: 'checkbox', id: type.uuid, checked: true});
 		//var style = 'color: ' + type.colour + ';';
@@ -232,35 +271,14 @@ function createMapController() {
 // 			me.map.markerVisibility(selected, id);
 // 		});
 	})
+	});
+}
 
+function createMapController() {
+	var me = this;
 	
-	$.each(networks, function(index, network) {
-		var legendItem = $("<div>", {'class': 'legendItem', id: network.uuid}).appendTo("#mapNetworks");
-		
-		$("<div>", {style: 'display: inline-block; margin:10px; width: 30px; height: 30px; background-color:'+network.colour}).appendTo(legendItem);
-		$("<span>", {'class': 'legendItemLabel'}).text(network.name).appendTo(legendItem);
-		
-		legendItem.click(function() {
-			var opacity = $(this).css("opacity");
-			var selected = true;
-			var nopacity = 1;
-			
-			if(opacity == 1) {
-				selected = false;
-				nopacity = 0.2;	
-			}
-			
-			var id = $(this).attr('id');
-			me.map.lineVisibility(selected, id);
- 			$(this).css("opacity", nopacity);
-
- 			//where to for this now?
-//			window.open(network.url);
-
- 			
-			console.log($(this).attr("opacity"));
-		});
-	})
+	refreshNetworkLegend();
+	refreshOrgTypeLegend();
 	
 	$("#mapController").draggable();
 	
