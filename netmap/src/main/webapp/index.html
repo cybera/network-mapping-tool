@@ -196,7 +196,7 @@ $(document).ready(function() {
 })
 
 function refreshNetworkLegend() {
-	
+	var me = this;
 	$.getJSON('ns/networkConnection/networks', function(result) {
 		$("#mapNetworks").empty();
 		networks = result;
@@ -235,6 +235,7 @@ function refreshNetworkLegend() {
 
 function refreshOrgTypeLegend() {
 	
+	var me = this;
 	$.getJSON('ns/organization/types', function() {
 	$("#mapOrgTypes").empty();
 	$.each(organizationTypes, function(index, type) {
