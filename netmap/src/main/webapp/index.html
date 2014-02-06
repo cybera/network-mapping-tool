@@ -10,7 +10,7 @@
 		<script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 		
 		<script type="text/javascript" src="js/jquery.ui.touch-punch.js"></script>
-		
+		 
 		<script type="text/javascript" src="js/jquery.toastmessage.js"></script>
 		<link type="text/css" href="css/jquery.toastmessage.css" rel="stylesheet" />
 		
@@ -81,7 +81,77 @@ var indexedPlaces;
 var locations;
 var map;
 
+function setLegendPreferredSize() {
+	$("#mapController").css("top", 18).css("left", 83).height(500).width(200);
+	
+	$("#maxLegend").attr("src", "images/maximize.png");
+	$(".legendImage").height(40);
+	$(".legendIcon").height(30).width(30);
+	$(".legendItemLabel").css("font-size", "14px");
+	$(".legendTitle").css("font-size", "15px");
+	$("#searchText").width("150").height(25).css("font-size", "15px");
+
+}
 $(document).ready(function() {
+	
+	$("#maxLegend").click(function() {
+		var mc =$("#mapController"); 
+		var w = $(window).width();
+		var h = $(window).height();
+
+		
+		if($("#maxLegend").attr("src") == "images/maximize.png") {
+			mc.css("top", 0);
+			mc.height(h-20);
+			mc.width(400);
+			mc.height(1000);
+			$("#maxLegend").attr("src", "images/minimize.png");
+			
+			$(".legendImage").height(100);
+			$(".legendIcon").height(80).width(80);
+			$(".legendItemLabel").css("font-size", "25px");
+			$(".legendTitle").css("font-size", "30px");
+			$("#searchText").width("250").height(50).css("font-size", "25px");
+			
+		}
+		else {
+			setLegendPreferredSize();
+		}
+		
+		
+	});
+	
+	
+	$("#minLegend").click(function() {
+		var mc = $("#mapController");
+		legendLastPos = {
+				top: mc.position().top,
+				left: mc.position().left,
+				width: mc.width(),
+				height: mc.height()
+		};
+		
+		var width = $(window).width();
+		
+		$("#mapController").animate({
+			top: 5,
+			left: (width-250),
+			width: 0,
+			height: 0, 
+		}, 500, function() {
+			$("#mapController").hide();
+			$("#layersButton").show();
+		});
+	});
+	
+	$("#layersButton").click(function() {
+		$(this).hide();
+	
+		
+		$("#mapController").show().animate(legendLastPos, 500);
+		
+	});
+	
 	
 	$("#searchText").change(function() {
 		var geocoder = new google.maps.Geocoder();
@@ -197,7 +267,7 @@ $(document).ready(function() {
 
 function refreshNetworkLegend() {
 	var me = this;
-	$.getJSON('ns/networkConnection/networks', function(result) {
+	return $.getJSON('ns/networkConnection/networks', function(result) {
 		$("#mapNetworks").empty();
 		networks = result;
 
@@ -206,7 +276,7 @@ function refreshNetworkLegend() {
 	$.each(networks, function(index, network) {
 		var legendItem = $("<div>", {'class': 'legendItem', id: network.uuid}).appendTo("#mapNetworks");
 		
-		$("<div>", {style: 'display: inline-block; margin:10px; width: 30px; height: 30px; background-color:'+network.colour}).appendTo(legendItem);
+		$("<div>", {'class': 'legendIcon', style: 'background-color:'+network.colour}).appendTo(legendItem);
 		$("<span>", {'class': 'legendItemLabel'}).text(network.name).appendTo(legendItem);
 		
 		legendItem.click(function() {
@@ -236,14 +306,14 @@ function refreshNetworkLegend() {
 function refreshOrgTypeLegend() {
 	
 	var me = this;
-	$.getJSON('ns/organization/types', function() {
+	return $.getJSON('ns/organization/types', function() {
 	$("#mapOrgTypes").empty();
 	$.each(organizationTypes, function(index, type) {
 		//var checkbox = $('<input>').attr({ type: 'checkbox', id: type.uuid, checked: true});
 		//var style = 'color: ' + type.colour + ';';
 		var legendItem = $("<div>", {'class': 'legendItem', id: type.uuid}).appendTo("#mapOrgTypes");
 		
-		$("<img>", {src: type.legendIcon, style: 'width: 50px;'}).appendTo(legendItem);
+		$("<img>", {src: type.legendIcon, 'class': 'legendImage'}).appendTo(legendItem);
 		$("<span>", {'class': 'legendItemLabel'}).text(type.type).appendTo(legendItem);
 		
 		
@@ -278,11 +348,22 @@ function refreshOrgTypeLegend() {
 function createMapController() {
 	var me = this;
 	
-	refreshNetworkLegend();
-	refreshOrgTypeLegend();
+		
 	
-	$("#mapController").draggable();
 	
+	
+	var promises = [];	
+	promises.push(refreshNetworkLegend());
+	promises.push(refreshOrgTypeLegend());
+	$.when.apply($, promises).done(function() {
+		$("#mapController").show();
+		setLegendPreferredSize();
+	});
+	
+	
+	$("#mapController").draggable().resizable();
+	
+
 	$("#mapStyleSelect").change(function() {
 		var select = $(this);
 		var itm = select.find('[value="'+select.val()+'"]').data("mapstyle");
@@ -370,24 +451,38 @@ function setValue(elem, operation, value) {
 	<body>
 		<div id="map_canvas" style="width:100%; height:100px;"></div>
 		<div id="edit_canvas"></div>
-
-		<div id="mapController" class="mapController">
-			
-			<div style="margin-top: 95px;margin-left: 30px;">
-				<div class="legendTitle">
-					ORGANIZATION TYPES
-				</div>
-				<div style="margin-left: 20px;"  id="mapOrgTypes"></div>
-				
-						
-				<div style="margin-top: 20px;" class="legendTitle">
-					NETWORKS
-				</div>
-				<div style="margin-left: 20px;" id="mapNetworks"></div>
-				
+		<div style="position: absolute; top:4px; right:101px;">
+			<select style="width:100px;" id="mapStyleSelect"></select>
+		</div>
 	
-				<input id="searchText" placeholder="Search Location"></input>
-				<select id="mapStyleSelect"></select>
+		<div style="position: absolute; top: 7px; right: 206px; width:50px; border: 1px solid grey; background-color: white; font-size: 12px;text-align: center;height: 16px; display: none;" id="layersButton">Layers</div>
+		
+		
+		<div id="mapController" class="mapController" style="display:none;">
+	
+				<img src="images/maximize.png" style="position: absolute; top:2%; right:5%" id="maxLegend"/>
+				<img src="images/close.png" id="minLegend" class="minimize"/>
+			<div style="margin-top:30px;">
+				<input style="margin-left: 10px;margin-top: 15px;width: 150px;height: 25px;font-size: 15px; z-index:1000;"id="searchText" placeholder="Search Location"></input>
+			</div>
+			
+			
+			
+			<div style="height: 90%; overflow:auto;">
+				<div style="float: left;margin-top: 20px; margin-left:20px;">
+					<div class="legendTitle">
+						ORGANIZATION TYPES
+					</div>
+					<div style="margin-left: 5px;"  id="mapOrgTypes"></div>
+				</div>
+						
+				<div style="float: left; margin-top: 20px; margin-left:20px;">
+					<div style="" class="legendTitle">
+						NETWORKS
+					</div>
+					<div style="margin-left: 5x;" id="mapNetworks"></div>
+				</div>
+	
 			
 			</div>
 		</div>
