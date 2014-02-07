@@ -191,9 +191,10 @@ $(document).ready(function() {
 		var url = window.location.origin + window.location.pathname + '?currentView=' + encodeURIComponent(JSON.stringify(currentView));
 		var emailUrl = "mailto:?subject=A network map has been shared with you&body=" + encodeURIComponent(url);
 		
-		var dialog = $('<div>', {title: 'Map URL', style: 'font-size:.6em;'}).html(url);
+		var dialog = $('<div>', {title: 'Map URL', style: 'font-size:.6em; word-wrap: break-word;'}).html(url);
 		
 		dialog.dialog({
+			width: 450,
 			buttons: {
 				"email": function() {
 					dialog.dialog('close');					
