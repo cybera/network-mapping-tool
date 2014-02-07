@@ -95,6 +95,7 @@ function Map() {
          
          this.map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
          this.infoWindow = new google.maps.InfoWindow();
+         this.currentUUID;
          
          var me = this;
 
@@ -199,6 +200,7 @@ function Map() {
          			console.log(base);
          			me.infoWindow.setContent(base[0]);
          			me.infoWindow.open(me.map, marker);
+         			me.currentUUID = marker.placename;
      			}
      			else {
      					console.log("link from ",me.linkStart," to ",marker.placename);
@@ -258,6 +260,23 @@ Map.prototype.clearEditLine = function() {
 		});
 		this.currentEditLine = undefined;
 	}
+};
+
+Map.prototype.getCenter = function() {
+	return this.map.getCenter();
+};
+
+Map.prototype.setCenter = function(lat, lng) {
+	var ll = new google.maps.LatLng(lat, lng);
+	this.map.panTo(ll);
+};
+
+Map.prototype.getZoom = function() {
+	return this.map.getZoom();
+};
+
+Map.prototype.setZoom = function(zoom) {
+	this.map.setZoom(zoom);
 };
 
 Map.prototype.zoomTo = function(marker) {
@@ -412,6 +431,7 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
     	if(me.linkStart) {
     		me.infoWindow.setContent(indexedPlaces[marker.placename].name);
 			me.infoWindow.open(me.map, marker);
+			me.currentUUID = marker.placename;
     	}
     });
 
@@ -501,6 +521,24 @@ Map.prototype.getLatLng = function(coordinates) {
 	return new google.maps.LatLng(coordinates[1], coordinates[0]);
 };
 
+Map.prototype.click = function(uuid, lat, lng) {
+
+	$.each(this.lines, function(index, line) {
+		if (line.get('uuid') == uuid) {
+			google.maps.event.trigger(line, "click", {'latLng' : new google.maps.LatLng(lat, lng)});
+		}
+	});
+
+	
+	$.each(this.markers, function(index, marker) {
+		if (marker.placename == uuid) {
+			google.maps.event.trigger(marker, "click");
+			google.maps.event.trigger(marker, "click");
+		}
+	});
+
+};
+
 Map.prototype.drawLink = function(link, from, to, type, click) {
 	
 	if(!link.geom) {
@@ -533,6 +571,7 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
     
     var pl = new google.maps.Polyline(options);
     pl.set('network', link.network.uuid);
+    pl.set('uuid', link.uuid);
     this.lines.push(pl);
     
     var me = this;
@@ -792,6 +831,7 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 				var midLatLng = me.getMidPoint(startLatLng, endLatLng);
 			me.infoWindow.setPosition(midLatLng);
 			}
+			me.currentUUID = link.uuid;
 			me.infoWindow.open(me.map);
 	});
 
