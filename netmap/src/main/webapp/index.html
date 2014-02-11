@@ -185,6 +185,11 @@ function applyCurrentView() {
 
 $(document).ready(function() {
 	
+	$.ajaxSetup ({
+	    // Disable caching of AJAX responses
+	    cache: false
+	});
+	
 	var currentViewParam = decodeURIComponent($.urlParam('currentView'));
 	currentView = JSON.parse(currentViewParam);
 	
@@ -363,15 +368,37 @@ $(document).ready(function() {
 		});
 		
 		if(editMode) {
-			$("#edit_canvas").load("edit.html", function() {
-				loadPlaces(places);
-				showLinks();
-				createMapController(applyCurrentView);
+			
+			var loginPassed = false;
+			var login = $("<div>", {id: 'login', 'class': 'login'});
+			login.append($("<label>", {text: 'Password:'}));
+			login.append($("<input>", {type: 'password', id: 'password'}));
+			login.dialog({
+				modal: true,
+				title: 'Admin Login',
+				buttons: {
+					'Login': function() {
+						
+						var password = $('#password').val();
+						post("ns/admin/login?password=" + password, null, 'json', function(result) {
+							loginPassed = true;
+							$('#login').dialog('close');
+						});
+					},
+					'Cancel': function() {
+						editMode = false;
+						$(this).dialog('close');
+					}
+				},
+				close: function() {
+					editMode = loginPassed;
+					finishLoad(editMode);					
+				}
 			});
+			
+			
 		} else {
-			loadPlaces(places);
-			showLinks();
-			createMapController(applyCurrentView);			
+			finishLoad(false);	
 		}
 
 	 	$("#searchText").autocomplete({
@@ -384,6 +411,21 @@ $(document).ready(function() {
 	});
 	
 })
+
+function finishLoad(editMode) {
+
+	if (editMode) {
+		$("#edit_canvas").load("edit.html", function() {
+			loadPlaces(places);
+			showLinks();
+			createMapController(applyCurrentView);
+		});
+	} else {
+		loadPlaces(places);
+		showLinks();
+		createMapController(applyCurrentView);	
+	}
+}
 
 function refreshNetworkLegend() {
 	var me = this;
