@@ -138,6 +138,7 @@ function createCurrentView() {
 	currentView['mapLat'] = this.map.getCenter().lat();
 	currentView['mapLng'] = this.map.getCenter().lng();
 	currentView['zoom'] = this.map.getZoom();
+	currentView['mapTypeId'] = this.map.map.mapTypeId;
 	
 	console.log("Curent View: ", currentView);
 }
@@ -171,6 +172,8 @@ function applyCurrentView() {
 	if (currentView.zoom) {
 		this.map.setZoom(currentView.zoom);
 	}
+	
+	this.map.map.setMapTypeId(currentView.mapTypeId);
 
 	if (currentView.infoWindowLat && currentView.infoWindowLng) {
 		this.map.click(currentView.infoWindowUUID, currentView.infoWindowLat, currentView.infoWindowLng);
