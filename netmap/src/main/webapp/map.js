@@ -392,9 +392,9 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 		icon = place.organizationType.mapIcon;
 	
 	var pinImage = new google.maps.MarkerImage(icon,
-	        new google.maps.Size(30, 30),
+	        new google.maps.Size(29, 39),
 	        new google.maps.Point(0,0),
-	        new google.maps.Point(15, 15));
+	        new google.maps.Point(14, 39));
 	// var icon = $.extend({}, this.circle, {fillColor: colour});
 	
 	
