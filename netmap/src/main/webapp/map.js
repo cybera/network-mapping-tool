@@ -117,7 +117,8 @@ function Map() {
 
     		//popup if line within tolerance
         	 $.each(me.lines, function(idx, line){
-        		 if(google.maps.geometry.poly.isLocationOnEdge(event.latLng, line, tolerance)) {
+        		 
+        		 if(line.getVisible() && google.maps.geometry.poly.isLocationOnEdge(event.latLng, line, tolerance)) {
         			 google.maps.event.trigger(line, 'click', event);
         			 return false;
         		 }
@@ -336,10 +337,8 @@ Map.prototype.markerVisibility = function(visible, orgType) {
 	var me = this;
 	
 	$.each(this.markers, function(index, marker) {
-		if (marker.get("orgType") == orgType) {
-			if (visible) marker.setMap(me.map);
-			else marker.setMap(null);
-		}
+		if(marker.get("orgType") == orgType)
+			marker.setVisible(visible);
 	});
 };
 
@@ -347,10 +346,8 @@ Map.prototype.lineVisibility = function(visible, network) {
 	var me = this;
 	
 	$.each(this.lines, function(index, line) {
-		if (line.get("network") == network) {
-			if (visible) line.setMap(me.map);
-			else line.setMap(null);
-		}
+		if(line.get("network") == network)
+			line.setVisible(visible);	
 	});
 };
 
