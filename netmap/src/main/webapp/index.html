@@ -1,653 +1,78 @@
 <!DOCTYPE html>
 <html>
-	
-	<head>
-		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-		 
-		<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyDrCXoSYA0GKWtl6I8K2QZDAhe9ryNnQkE&sensor=false&libraries=geometry"></script>
-		 
-		<script type='text/javascript' src='http://code.jquery.com/jquery-1.9.1.js'></script>
-		<script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-		
-		<script type="text/javascript" src="js/jquery.ui.touch-punch.js"></script>
-		 
-		<script type="text/javascript" src="js/jquery.toastmessage.js"></script>
-		<link type="text/css" href="css/jquery.toastmessage.css" rel="stylesheet" />
-		
-		<script type="text/javascript" src="js/jquery.csv-0.71.js"></script>
-		<script type="text/javascript" src="js/oms.min.js"></script>
-		<script type="text/javascript" src="js/jquery.alerts.js"></script>
-		<script type="text/javascript" src="js/jquery.jqGrid.src.js"></script>
-		<script type="text/javascript" src="js/jquery.contextMenu.js"></script>
-		<script type="text/javascript" src="netmap.editPopup.js"></script>
-		
-		<script type="text/javascript" src="js/jquery.cookie.js"></script>
-		
-		<link rel="stylesheet" href="css/jquery.contextMenu.css" type="text/css" />
-		 
-		<script type="text/javascript" src="js/jquery.colorpicker.js"></script>
-		<link rel="stylesheet" href="css/jquery.colorpicker.css" type="text/css" />
-		
-		<script type="text/javascript" src="js/filereader.js"></script>
-		<script type="text/javascript" src="js/uuid.js"></script>
-		
-		
-		<script type="text/javascript" src="map.js"></script>
-		<script type="text/javascript" src="netmap.js"></script>
-		 
-		<link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
-		<link rel="stylesheet" href="css/ui.jqgrid.css" type="text/css" />
-		
-		<link rel="stylesheet" href="netmap.css" type="text/css" />
+
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<!-- 		<script type="text/javascript" src="js/jquery.csv-0.71.js"></script> -->
+
+<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyDrCXoSYA0GKWtl6I8K2QZDAhe9ryNnQkE&sensor=false&libraries=geometry"></script>
+<script type="text/javascript" src="js/oms.min.js"></script>
+
+<script type='text/javascript' src='http://code.jquery.com/jquery-1.9.1.js'></script>
+<script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
+
+<script type="text/javascript" src="js/jquery.ui.touch-punch.js"></script>
+<script type="text/javascript" src="js/jquery.alerts.js"></script>
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
+<script type="text/javascript" src="js/filereader.js"></script>
+<script type="text/javascript" src="js/uuid.js"></script>
+
+<script type="text/javascript" src="js/jquery.toastmessage.js"></script>
+<link type="text/css" href="css/jquery.toastmessage.css" rel="stylesheet" />
+
+<script type="text/javascript" src="js/jquery.contextMenu.js"></script>
+<link rel="stylesheet" href="css/jquery.contextMenu.css" type="text/css" />
+
+<script type="text/javascript" src="js/jquery.jqGrid.src.js"></script>
+<link rel="stylesheet" href="css/ui.jqgrid.css" type="text/css" />
+
+<script type="text/javascript" src="js/jquery.colorpicker.js"></script>
+<link rel="stylesheet" href="css/jquery.colorpicker.css" type="text/css" />
 
 
 
-<script>
-
-//prevent console fail
-if (typeof console === "undefined" || typeof console.log === "undefined") {
-    console = {};
-    console.log = function() {};
-}
-
-function showLinks() {
-	map.clearLines();
-	
-	$.each(links, function(idx, link) {
-		var from = indexedPlaces[link.orgStartUUID];
-		var to = indexedPlaces[link.orgEndUUID];
-		var line = map.drawLink(link, from, to, indexedLinkTypes[link.type]);
-	});
-}
-
-function doresize() {
-	var h = $(window).height();
-	
-	if($("#bottom").is(":visible")) {
-		var bottomh = $("#bottom").height();
-		var toolbarh = $("#toolbar").height();
-		h = $(window).height()-bottomh;
-
-		$("#placeTable").setGridWidth($(window).width());
-		$("#placeTable").setGridHeight(bottomh-toolbarh);
-	}
-	$("#map_canvas").height(h);
-	$("#map3d").height(h);
-}
-
-var indexedLinkTypes;
-var networks;
-var indexedPlaces;
-var locations;
-var map;
-
-function setLegendPreferredSize() {
-	$("#mapController").css("top", 18).css("left", 83).height(500).width(200);
-	
-	$("#maxLegend").attr("src", "images/maximize.png");
-	$(".legendImage").height(40);
-	$(".legendIcon").height(30).width(30);
-	$(".legendItemLabel").css("font-size", "14px");
-	$(".legendTitle").css("font-size", "15px");
-	$("#searchText").width("150").height(25).css("font-size", "15px");
-
-}
-
-$.urlParam = function(name){
-    var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
-    if (results==null){
-       return null;
-    }
-    else{
-       return results[1] || 0;
-    }
-}
-
-var currentView = {};
-
-function createCurrentView() {
-	currentView = {};
-	
-	currentView['disabledOrgTypes'] = [];
-	$.each($("#mapOrgTypes > div"), function(index, div) {
-		if ($(div).css('opacity') != 1) currentView['disabledOrgTypes'].push($(div).attr('id'));
-	});
-	
-	currentView['disabledNetworks'] = [];
-	$.each($("#mapNetworks > div"), function(index, div) {
-		if ($(div).css('opacity') != 1) currentView['disabledNetworks'].push($(div).attr('id'));
-	});
-	
-	if ($('#mapStyleSelect').val()) {
-		var itm = $('#mapStyleSelect').find('[value="'+$('#mapStyleSelect').val()+'"]').data("mapstyle");
-		currentView['mapStyle'] = itm.uuid;
-	}
-	
-	if ($('#layersButton').is(':visible')) currentView['legend'] = 'minLegend';
-	else if ($("#maxLegend").attr("src") == "images/minimize.png") currentView['legend'] = 'maxLegend';
-	
-	
-	if (this.map.currentUUID != null && this.map.infoWindow.getMap() !== null && this.map.infoWindow.getMap() !== "undefined") {
-		if (this.map.infoWindow.position !== null && this.map.infoWindow.position !== undefined) {
-			currentView['infoWindowLat'] = this.map.infoWindow.position.lat();
-			currentView['infoWindowLng'] = this.map.infoWindow.position.lng();
-		} 
-		currentView['infoWindowUUID'] = this.map.currentUUID;
-	}
-	
-	currentView['mapLat'] = this.map.getCenter().lat();
-	currentView['mapLng'] = this.map.getCenter().lng();
-	currentView['zoom'] = this.map.getZoom();
-	currentView['mapTypeId'] = this.map.map.mapTypeId;
-	
-	console.log("Curent View: ", currentView);
-}
-
-function applyCurrentView() {
-
-	console.log("Applying Current View: ", currentView);
-	
-	if (currentView == null) return;
-	
-	if (currentView.disabledOrgTypes) {
-		$.each(currentView.disabledOrgTypes, function(index, orgType) { $("#" + orgType).click(); });
-	}
-	
-	if (currentView.disabledNetworks) {
-		$.each(currentView.disabledNetworks, function(index, network) { $("#" + network).click(); });
-	}
-	
-	if (currentView.mapStyle) {
-		refreshMapStyles(currentView.mapStyle);
-	}
-	
-	if (currentView.legend) {
-		$('#' + currentView.legend).click();
-	}
-	
-	if (currentView.mapLat && currentView.mapLng) {
-		this.map.setCenter(currentView.mapLat, currentView.mapLng);
-	}
-	
-	if (currentView.zoom) {
-		this.map.setZoom(currentView.zoom);
-	}
-	
-	this.map.map.setMapTypeId(currentView.mapTypeId);
-
-	if (currentView.infoWindowLat && currentView.infoWindowLng) {
-		this.map.click(currentView.infoWindowUUID, currentView.infoWindowLat, currentView.infoWindowLng);
-	} else if (currentView.infoWindowUUID) {
-		this.map.click(currentView.infoWindowUUID);
-	}
-
-}
-
-$(document).ready(function() {
-	
-	$.ajaxSetup ({
-	    // Disable caching of AJAX responses
-	    cache: false
-	});
-	
-	var currentViewParam = decodeURIComponent($.urlParam('currentView'));
-	currentView = JSON.parse(currentViewParam);
-	
-	$('#share').click(function() {
-		createCurrentView();
-		
-		var url = window.location.origin + window.location.pathname + '?currentView=' + encodeURIComponent(JSON.stringify(currentView));
-		var emailUrl = "mailto:?subject=A network map has been shared with you&body=" + encodeURIComponent(url);
-		
-		var dialog = $('<div>', {title: 'Map URL', style: 'font-size:.6em; word-wrap: break-word;'}).html(url);
-		
-		dialog.dialog({
-			width: 450,
-			buttons: {
-				"email": function() {
-					dialog.dialog('close');					
-					window.location = emailUrl;
-				},
-				"pop-off": function() {
-					dialog.dialog('close');
-					window.open(url);
-				},
-				"close": function() {
-					dialog.dialog('close');
-				}
-			}
-		}).dialog('open');
-	});
-	
-	$("#maxLegend").click(function() {
-		var mc =$("#mapController"); 
-		var w = $(window).width();
-		var h = $(window).height();
-
-		
-		if($("#maxLegend").attr("src") == "images/maximize.png") {
-			mc.css("top", 0);
-			mc.height(h-20);
-			mc.width(400);
-			mc.height(1000);
-			$("#maxLegend").attr("src", "images/minimize.png");
-			
-			$(".legendImage").height(100);
-			$(".legendIcon").height(80).width(80);
-			$(".legendItemLabel").css("font-size", "25px");
-			$(".legendTitle").css("font-size", "30px");
-			$("#searchText").width("250").height(50).css("font-size", "25px");
-			
-		}
-		else {
-			setLegendPreferredSize();
-		}
-		
-		
-	});
-	
-	
-	$("#minLegend").click(function() {
-		var mc = $("#mapController");
-		legendLastPos = {
-				top: mc.position().top,
-				left: mc.position().left,
-				width: mc.width(),
-				height: mc.height()
-		};
-		
-		var width = $(window).width();
-		
-		$("#mapController").animate({
-			top: 5,
-			left: (width-250),
-			width: 0,
-			height: 0, 
-		}, 500, function() {
-			$("#mapController").hide();
-			$("#layersButton").show();
-		});
-	});
-	
-	$("#layersButton").click(function() {
-		$(this).hide();
-	
-		
-		$("#mapController").show().animate(legendLastPos, 500);
-		
-	});
-	
-	
-	$("#searchText").change(function() {
-		var geocoder = new google.maps.Geocoder();
-
-		geocoder.geocode({
-			address : $(this).val()
-		}, function(results, status) {
-			console.log('geocode: ', " -> ", status);
-			if (status == google.maps.GeocoderStatus.OK) {
-				map.map.setCenter(results[0].geometry.location);
-		        if (results[0].geometry.viewport) 
-		          map.map.fitBounds(results[0].geometry.viewport);
-			} else {
-				showToast("unable to geocode", false, 'error');
-			}
-
-		});
-	});
-	
-	$("#mapStyleChooser").dialog({
-		autoOpen : false,
-		modal : true,
-		title : "Choose Map Style",
-		width : 'auto',
-		buttons : {
-			"Done" : function() {
-				$(this).dialog("close");
-			}
-		}
-	});
-	
-	editMode = false;
-	
-	if(querystring("mode") == "editMode") {
-		editMode = true;
-	}
-	
-	//setup map
-	map = new Map();
-
-	$(document).keyup(function(e) {
-		//pass escape thru to allow map to stop edit operations
-		  if (e.keyCode == 27) { 
-			  map.notifyEscape();
-		  }
-	});	
-
-	//resize components with window/split pane change
-	$(window).bind('resize', function() {
-		doresize();
-	}).trigger('resize');
-	
-	if(!editMode) {
-		
-		$.getJSON('ns/organization/displayDetails', function(result) {
-			orgDisplayItems = $.map(result, function(itm, idx) {
-				if(itm.visible)
-					return itm.name;
-			});			
-		});
-		
-	}
-		
-	var promises = [];	
-
-	promises.push($.getJSON('ns/networkConnection/speeds'));
-	promises.push($.getJSON('ns/networkConnection/networks'));
-	promises.push($.getJSON('ns/organization/types'));
-	promises.push($.getJSON('ns/organization'));
-	promises.push($.getJSON('ns/networkConnection'));
-
-	$.when.apply($, promises).done(function() {
-		console.log('Netmap Init Promises: ', arguments);
-		
-		indexedLinkTypes = arguments[0][0];
-		networks = arguments[1][0];
-		organizationTypes = arguments[2][0];
-		places = arguments[3][0];
-		links = arguments[4][0];
-		
-		indexedPlaces={};
-		$.each(places, function(idx, place) {
-			indexedPlaces[place.uuid] = place;
-			if(place.organizationType) {
-				place.organizationType.toString = function() {
-					return this.type;
-				};
-			}
-		});
-		
-		if(editMode) {
-			
-			var loginPassed = false;
-			var login = $("<div>", {id: 'login', 'class': 'login'});
-			login.append($("<label>", {text: 'Password:'}));
-			login.append($("<input>", {type: 'password', id: 'password'}));
-			login.dialog({
-				modal: true,
-				title: 'Admin Login',
-				buttons: {
-					'Login': function() {
-						
-						var password = $('#password').val();
-						post("ns/admin/login?password=" + password, null, 'json', function(result) {
-							loginPassed = true;
-							$('#login').dialog('close');
-						});
-					},
-					'Cancel': function() {
-						editMode = false;
-						$(this).dialog('close');
-					}
-				},
-				close: function() {
-					editMode = loginPassed;
-					finishLoad(editMode);					
-				}
-			});
-			
-			
-		} else {
-			finishLoad(false);	
-		}
-
-	 	$("#searchText").autocomplete({
-	 		source: $.map(places, function(val, key) { return {label: val.name, id: val.uuid}; }),
-	 		select: function(event, ui) {
-	 			map.zoomTo(indexedPlaces[ui.item.id].marker);
-	 		}
-		});
-
-	});
-	
-})
-
-function finishLoad(editMode) {
-
-	if (editMode) {
-		$("#edit_canvas").load("edit.html", function() {
-			loadPlaces(places);
-			showLinks();
-			createMapController(applyCurrentView);
-		});
-	} else {
-		loadPlaces(places);
-		showLinks();
-		createMapController(applyCurrentView);	
-	}
-}
-
-function refreshNetworkLegend() {
-	var me = this;
-	return $.getJSON('ns/networkConnection/networks', function(result) {
-		$("#mapNetworks").empty();
-		networks = result;
-
-
-	
-	$.each(networks, function(index, network) {
-		var legendItem = $("<div>", {'class': 'legendItem', id: network.uuid}).appendTo("#mapNetworks");
-		
-		$("<div>", {'class': 'legendIcon', style: 'background-color:'+network.colour}).appendTo(legendItem);
-		$("<span>", {'class': 'legendItemLabel'}).text(network.name).appendTo(legendItem);
-		
-		legendItem.click(function() {
-			var opacity = $(this).css("opacity");
-			var selected = true;
-			var nopacity = 1;
-			
-			if(opacity == 1) {
-				selected = false;
-				nopacity = 0.2;	
-			}
-			
-			var id = $(this).attr('id');
-			me.map.lineVisibility(selected, id);
- 			$(this).css("opacity", nopacity);
-
- 			//where to for this now?
-//			window.open(network.url);
-
- 			
-			console.log($(this).attr("opacity"));
-		});
-	})
-	});
-}
-
-function refreshOrgTypeLegend() {
-	
-	var me = this;
-	return $.getJSON('ns/organization/types', function() {
-	$("#mapOrgTypes").empty();
-	$.each(organizationTypes, function(index, type) {
-		//var checkbox = $('<input>').attr({ type: 'checkbox', id: type.uuid, checked: true});
-		//var style = 'color: ' + type.colour + ';';
-		var legendItem = $("<div>", {'class': 'legendItem', id: type.uuid}).appendTo("#mapOrgTypes");
-		
-		$("<img>", {src: type.legendIcon, 'class': 'legendImage'}).appendTo(legendItem);
-		$("<span>", {'class': 'legendItemLabel'}).text(type.type).appendTo(legendItem);
-		
-		
-		legendItem.click(function() {
-			var opacity = $(this).css("opacity");
-			var selected = true;
-			var nopacity = 1;
-			
-			if(opacity == 1) {
-				selected = false;
-				nopacity = 0.2;	
-			}
-			
-			var id = $(this).attr('id');
- 			me.map.markerVisibility(selected, id);
- 			$(this).css("opacity", nopacity);
-			
-			console.log($(this).attr("opacity"));
-		});
-		
-// 		$("#mapOrgTypes").append($('<div>', {style: 'margin:3px;'})).append($('<label>', {style : style}).html(type.type).prepend(checkbox));
-		
-// 		checkbox.change(function() {
-// 			var selected = this.checked;
-// 			var id = $(this).attr('id');
-// 			me.map.markerVisibility(selected, id);
-// 		});
-	})
-	});
-}
-
-function createMapController(callback) {
-	var me = this;
-	
-	var promises = [];	
-	promises.push(refreshNetworkLegend());
-	promises.push(refreshOrgTypeLegend());
-	$.when.apply($, promises).done(function() {
-		$("#mapController").show();
-		setLegendPreferredSize();
-		if (callback) callback();
-	});
-	
-	
-	$("#mapController").draggable().resizable();
-	
-
-	$("#mapStyleSelect").change(function() {
-		var select = $(this);
-		var itm = select.find('[value="'+select.val()+'"]').data("mapstyle");
-		var style = JSON.parse(itm.style);
-		console.log("itm: ",itm);
-		map.map.setOptions({styles: style});
-		
-		$.cookie("defaultMapStyleID", itm.uuid);
-	});
-
-	refreshMapStyles();
-}
-
-function refreshMapStyles(styleUUID) {
-	$.getJSON("ns/mapStyles", function(result) {
-		console.log("result:",result);
-		var select = $("#mapStyleSelect");
-		select.empty();
-		var defaultId = (styleUUID) ? styleUUID : $.cookie("defaultMapStyleID");
-		$.each(result, function(idx, itm) {
-			var op = $("<option>", {value:itm.name}).html(itm.name).appendTo(select);
-			if(itm.uuid == defaultId) {
-				op.attr("selected", "selected");
-				map.map.setOptions({styles: JSON.parse(itm.style)});
-			}
-			op.data("mapstyle", itm);
-		});
-	});
-}
-
-function loadPlaces(places) {
-
-	$.each(places, function(idx, place) {
-	
-		if(place.geom.coordinates[0]) {
-			if (editMode)
-				place.marker = map.drawPlace(place, createLink, handleSelectPlace, handleDrag, handleDragEnd);
-			else
-				place.marker = map.drawPlace(place);
-		}
-		
-		if(place.organizationType) {
-			place.organizationType.toString = function() {
-				return this.type;
-			};
-		}
-	});
-}
-
-
-function querystring(key) {
-   var re=new RegExp('(?:\\?|&)'+key+'=(.*?)(?=&|$)','gi');
-   var r=[], m;
-   while ((m=re.exec(document.location.search)) != null) r.push(m[1]);
-   return r;
-}
-
-
-function getAutocomplete(value, options) {
-	console.log("in get autocomplete...", types);
-	  var e = $("<input>");
-	  e.autocomplete({
-		  source: types
-	  });
-	  e.val(value);
-	  return e;
-}
-
-
-function setValue(elem, operation, value) {
-    if(operation === 'get') {
-       return $(elem).val();
-    } else if(operation === 'set') {
-       $(elem).val(value);
-    }
-}
-
-
-</script>
+<script type="text/javascript" src="js/netmap/netmap.js"></script>
+<script type="text/javascript" src="js/netmap/netmapMap.js"></script>
+<script type="text/javascript" src="js/netmap/netmap.editPopup.js"></script>
+<script type="text/javascript" src="js/netmap/netmapUtil.js"></script>
+<link rel="stylesheet" href="css/netmap/netmap.css" type="text/css" />
 
 <link href='http://fonts.googleapis.com/css?family=Arimo:400,700' rel='stylesheet' type='text/css'>
 
 </head>
-  
-	<body>
-		<div id="map_canvas" style="width:100%; height:100px;"></div>
-		<div id="edit_canvas"></div>
-		<div style="position: absolute; top:4px; right:101px;">
-			<select style="width:100px;" id="mapStyleSelect"></select>
-			<img src="images/share.png" id="share" width="20px" style="cursor:pointer;"/>
+
+<body>
+	<div id="map_canvas" style="width: 100%; height: 100px;"></div>
+	<div id="edit_canvas"></div>
+	<div style="position: absolute; top: 4px; right: 101px;">
+		<select style="width: 100px;" id="mapStyleSelect"></select> <img src="images/share.png" id="share" width="20px" style="cursor: pointer;" />
+	</div>
+	<div style="position: absolute; top: 7px; right: 228px; width: 50px; border: 1px solid grey; background-color: white; font-size: 12px; text-align: center; height: 16px; display: none;" id="layersButton">Legend</div>
+
+
+	<div id="mapController" class="mapController" style="display: none;">
+		<img src="images/maximize.png" style="position: absolute; top: 2%; right: 5%" id="maxLegend" /> <img src="images/close.png" id="minLegend" class="minimize" />
+		<div style="margin-top: 30px;">
+			<input style="margin-left: 10px; margin-top: 15px; width: 150px; height: 25px; font-size: 15px; z-index: 1000;" id="searchText" placeholder="Search Location"></input>
 		</div>
-		<div style="position: absolute; top: 7px; right: 228px; width:50px; border: 1px solid grey; background-color: white; font-size: 12px;text-align: center;height: 16px; display: none;" id="layersButton">Legend</div>
-		
-		
-		<div id="mapController" class="mapController" style="display:none;">
-	
-				<img src="images/maximize.png" style="position: absolute; top:2%; right:5%" id="maxLegend"/>
-				<img src="images/close.png" id="minLegend" class="minimize"/>
-			<div style="margin-top:30px;">
-				<input style="margin-left: 10px;margin-top: 15px;width: 150px;height: 25px;font-size: 15px; z-index:1000;"id="searchText" placeholder="Search Location"></input>
+
+		<div style="height: 90%; overflow: auto;">
+			<div style="float: left; margin-top: 20px; margin-left: 20px;">
+				<div class="legendTitle">ORGANIZATION TYPES</div>
+				<div style="margin-left: 5px;" id="mapOrgTypes"></div>
 			</div>
-			
-			
-			
-			<div style="height: 90%; overflow:auto;">
-				<div style="float: left;margin-top: 20px; margin-left:20px;">
-					<div class="legendTitle">
-						ORGANIZATION TYPES
-					</div>
-					<div style="margin-left: 5px;"  id="mapOrgTypes"></div>
-				</div>
-						
-				<div style="float: left; margin-top: 20px; margin-left:20px;">
-					<div style="" class="legendTitle">
-						NETWORKS
-					</div>
-					<div style="margin-left: 5x;" id="mapNetworks"></div>
-				</div>
-	
-			
+
+			<div style="float: left; margin-top: 20px; margin-left: 20px;">
+				<div style="" class="legendTitle">NETWORKS</div>
+				<div style="margin-left: 5x;" id="mapNetworks"></div>
 			</div>
 		</div>
-		
-		
-	</body>
+	</div>
+
+
+</body>
 
 </html>
-  
+

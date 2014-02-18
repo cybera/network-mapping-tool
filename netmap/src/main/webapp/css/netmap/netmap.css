@@ -14,7 +14,7 @@ vertical-align:middle;
 }
 
 .ui-button .ui-icon.draw-icon {
-    background-image: url('images/draw.png') !important;
+    background-image: url('../../images/draw.png') !important;
     width: 26px;
     height: 26px; 
     top: 14px;
@@ -44,9 +44,10 @@ width: 314px;
 height: 733px;
 padding: 10px;
 overflow: hidden;
-background: url('images/legend.png') no-repeat;
+background: url('../../images/legend.png') no-repeat;
 background-size: 100% 100%;	
 }
+
 
 .minimize {
 position: absolute;

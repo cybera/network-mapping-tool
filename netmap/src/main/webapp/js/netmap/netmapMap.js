@@ -337,13 +337,37 @@ Map.prototype.markerVisibility = function(visible, orgType) {
 	var me = this;
 	
 	$.each(this.markers, function(index, marker) {
-		if(marker.get("orgType") == orgType)
+		if(marker.get("orgType") == orgType) {
 			marker.setVisible(visible);
+
+			var links = indexedPlaces[marker.placename].links;
+			if(links) {
+				if(!visible) {
+					//hide all links associated with this
+					$.each(links, function(idx, link) {
+						link.line.setVisible(false);
+					});
+				}
+				else {
+					//re-show the links that should be visible
+					$.each(links, function(idx, link) {
+						//only re-enable if the network layer is supposed to be visible
+						if(link.connection.network && networkVisibility[link.connection.network.uuid])
+							link.line.setVisible(true);
+					});
+					
+				}
+				
+			}
+			
+		}
 	});
 };
 
 Map.prototype.lineVisibility = function(visible, network) {
 	var me = this;
+	
+	networkVisibility[network] = visible;
 	
 	$.each(this.lines, function(index, line) {
 		if(line.get("network") == network)

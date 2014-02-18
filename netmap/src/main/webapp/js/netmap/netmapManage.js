@@ -1,5 +1,6 @@
 $(document).ready(function() {
 
+	//Setup the Menu for all the Data Type Settings
 	$.contextMenu({
 		selector: "#settingsButton",
 		trigger: 'left',
@@ -33,7 +34,8 @@ $(document).ready(function() {
 		}
 	});
 	
-	 
+	
+	//Setup the Org Types Dialog
 	$("#orgTypeDialog").editPopup({
 		title: 'Manage Organization Types',
 		urlList: 'ns/organization/types',
@@ -87,6 +89,8 @@ $(document).ready(function() {
 		defaultObject: {type: '', colour: '#FFFFFF'}
 	});
 	
+	
+	//Setup the Network Connections Dialog
 	$("#networkDialog").editPopup({
 	title: 'Manage Networks',
 	urlList: 'ns/networkConnection/networks',
@@ -158,6 +162,7 @@ $(document).ready(function() {
 });
 	
 
+//Setup the Network Speed Dialog
 $("#speedDialog").editPopup({
 	title: 'Manage Connection Speeds',
 	urlList: 'ns/networkConnection/speeds',
@@ -217,12 +222,15 @@ $("#speedDialog").editPopup({
 	
 });
 
+//Formatter for displaying the current color
 function colorFormatter(cellvalue, options, rowObject) {
 	return "<span style='display: inline-block; width:20px; height:20px; background-color: "
 			+ cellvalue + "'/>";
 }
-function showOrgDetails() {
 
+
+function showOrgDetails() {
+	//Setup management dialog that allows for sorting of the popup fields displayed when organization is clicked in user mode
 	$.getJSON('ns/organization/displayDetails', function(result) {
 
 		var div = $("<div>");

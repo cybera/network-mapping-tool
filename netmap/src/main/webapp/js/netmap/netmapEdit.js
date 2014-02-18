@@ -30,14 +30,14 @@ $(document).ready(function() {
 		return false;
 	});
 
-	$("#exportButton").click(function() {
-		outputTable();
-	});
+//	$("#exportButton").click(function() {
+//		outputTable();
+//	});
 
-	$("#linkTypeButton").click(function() {
-		$("#linkTypes").html(JSON.stringify(indexedLinkTypes, null, 2));
-		$("#linkTypeDialog").dialog("open");
-	});
+//	$("#linkTypeButton").click(function() {
+//		$("#linkTypes").html(JSON.stringify(indexedLinkTypes, null, 2));
+//		$("#linkTypeDialog").dialog("open");
+//	});
 
 
 
@@ -96,31 +96,6 @@ $(document).ready(function() {
 		autoOpen : false
 
 	});
-
-	// TODO: will work below into file open
-	/*
-	 * //used to parse and geocode the locations from a csv
-	 * 
-	 * function getCSV(url, callback) { console.log("retrieve: "+url); $.ajax({
-	 * url: url, cache: false, dataType: 'text', processData: false, type:
-	 * 'GET', success: function(response) { var parsed =
-	 * $.csv.toObjects(response); if(callback) callback(parsed); }, error:
-	 * function(request, type, errorThrown) { alert(msg_comm_err); } });
-	 *  }
-	 * 
-	 * getCSV("institutions.csv", function(places) { var geocodePlacesComplete =
-	 * geocodePlaces(places);
-	 * 
-	 * console.log("got promise:",geocodePlacesComplete);
-	 * 
-	 * $.when(geocodePlacesComplete).then(function(results) {
-	 * console.log("geocoding complete..."); console.log(results);
-	 * console.log(JSON.stringify(results));
-	 * 
-	 * loadPlaces(results); });
-	 * 
-	 * });
-	 */
 
 	setupTable();
 });

@@ -1,3 +1,5 @@
+// A JQuery UI Widget that provides a popup with a Grid of the data & it's CRUD operations
+
 ;(function ( $, window, document, undefined ) {
 
     $.widget( "netmap.editPopup" , {
@@ -22,6 +24,7 @@
         	
         	this.data = {};
         	
+        	//setup the layout
         	this.toolbar = $("<div>", {style: 'margin-left:10px; margin-bottom:10px; height:25px; width:100%'}).appendTo(this.element);
         	this.addButton = $("<img>", {title: 'Add', src: 'images/add.png', 'class': 'btn'}).appendTo(this.toolbar);
         	this.editButton = $("<img>", {title: 'Edit', src: 'images/edit.png', 'class': 'btn'}).appendTo(this.toolbar);
@@ -35,7 +38,7 @@
         		$(me.options.appendLayout).appendTo(this.element);
         	}
         	
-        	
+        	//setup the table/grid
         	var colNames = [];
         	var colModel = [];
         	$.each(this.options.grid, function(key, val) {
@@ -82,7 +85,9 @@
         		};
         	
         		var table = me.table.jqGrid(tableOptions).navGrid("#pagernav",{edit:false,add:false,del:false});
+
         		
+        		//Setup CRUD operations
         		me.addButton.click(function() {
         			post(me.options.url, me.options.defaultObject, 'json', function(d) {
         				me.dataById[d.uuid] = d;
@@ -95,10 +100,8 @@
 
         		me.editButton.click(function() {
         			var id = table.jqGrid("getGridParam", "selrow");
-
         			this.editRow(id);
         		});
-
         		
         		me.deleteButton.click(function() {
         			var id = table.jqGrid("getGridParam", "selrow");
@@ -131,6 +134,7 @@
         			width: me.options.width,
         			height: me.options.height,
         			buttons: {'Done': function() {
+        					//confirm saving if there is a row that hasn't been commited yet.
         					if(me.table.find("tr[editable='1']").length > 0) {
         						me._confirmSave(me.table.find("tr[editable='1']").attr("id"));
         					}
@@ -141,6 +145,7 @@
         		});
         		
         		
+        		// Get the Data for this dialog
         		console.log("fetch list: "+me.options.urlList);
         		$.getJSON(me.options.urlList, function(result) {
         			me.data = result;
@@ -154,12 +159,7 @@
             		
             	    table[0].p.data = me.data;
             		table.trigger('reloadGrid');
-
-        			
         		});
-        		
-        		
-        		
         		
     		this._setOptions(this.options);
         },
@@ -170,6 +170,7 @@
 			if(me.dataById[me.lastSel].name)
 				name = " to "+me.dataById[me.lastSel].name;
 
+			//handle Saving if user wants to commit the unsave change
         	$.confirm("Do you want to save changes"+name+"?",
 					{
 					buttons : {
@@ -214,6 +215,7 @@
         editRow: function(id) {
         	var me = this;
         	
+        	//handle Editing
         	console.log("call edit row: "+id);
         	this.table.jqGrid('editRow', id, {
 		    	url: 'clientArray',
@@ -237,6 +239,7 @@
     		delete newdata.id;
     		me.dataById[row] = newdata; 
     		
+    		//fire update to server
     		me.lastSel = undefined;
     		console.log("after save func, call post: ",me.options.url,newdata);
     		post(me.options.url, me.dataById[row], 'json', function(record) {
