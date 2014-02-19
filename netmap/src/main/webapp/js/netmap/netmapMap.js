@@ -137,7 +137,7 @@ function Map() {
         	 
         	 $.each(markers, function(idx, itm) {
         		 itm.setOptions({
-        			 draggable: editMode
+        			 draggable: dragAllowed
         		 });
 
         	 });
@@ -309,7 +309,7 @@ Map.prototype.getMarker = function(position) {
 		map: this.map,
 		icon: this.circle,
 		zIndex: 100,
-		draggable: editMode,
+		draggable: dragAllowed,
 		animation: google.maps.Animation.DROP
 	});
 
@@ -405,8 +405,11 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 	
 	
 	var animation = null;
-	if(bounce) 
+	var draggable = dragAllowed;
+	if(bounce) { 
 		animation = google.maps.Animation.BOUNCE;
+		draggable = true;
+	}
 		
 	var icon = undefined;
 	if(place.organizationType)
@@ -419,11 +422,12 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 	// var icon = $.extend({}, this.circle, {fillColor: colour});
 	
 	
+	
 	var marker = new google.maps.Marker({
 		position: ll,
 		map: this.map,
 		zIndex: 100,
-		draggable: editMode,
+		draggable: draggable,
 		animation: animation
 		
 	});

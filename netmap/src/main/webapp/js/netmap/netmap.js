@@ -11,6 +11,8 @@ var locations;
 var map;
 var currentView = {};
 var networkVisibility = {};
+var dragAllowed = false;
+
 
 $(document).ready(function() {
 	

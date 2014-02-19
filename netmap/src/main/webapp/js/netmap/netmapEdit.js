@@ -77,6 +77,24 @@ $(document).ready(function() {
 		deleteRow(row);
 	});
 
+	$("#lockButton").click(function() {
+		dragAllowed = !dragAllowed;
+		
+		var msg = "Map Pins are now locked and cannot be dragged.";
+		var img = "images/lock.png";
+		if(dragAllowed) {
+			img = "images/unlock.png";
+			msg = "You can now drag the map pins.";
+		}
+		$("#lockButton").attr("src", img);
+		
+		$.each(places, function(idx, itm) {
+			itm.marker.setDraggable(dragAllowed);
+		});
+		
+		showToast(msg);
+	});
+
 	// setup export dialog
 	$("#placecsvdownload").button();
 	$("#linkcsvdownload").button();
