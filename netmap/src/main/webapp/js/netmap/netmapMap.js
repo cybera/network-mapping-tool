@@ -296,26 +296,6 @@ Map.prototype.removeMarker = function(marker) {
 	}
 }
 
-Map.prototype.getMarker = function(position) {
-	var ll = new google.maps.LatLng(position.lat(), position.lng());
-
-	var image = new google.maps.MarkerImage('http://maps.google.com/mapfiles/kml/pal4/icon57.png',
-		      new google.maps.Size(32, 32),
-		      new google.maps.Point(0,0),
-		      new google.maps.Point(16, 16));
-	
-	var marker = new google.maps.Marker({
-		position: ll,
-		map: this.map,
-		icon: this.circle,
-		zIndex: 100,
-		draggable: dragAllowed,
-		animation: google.maps.Animation.DROP
-	});
-
-	return marker;
-}
-
 Map.prototype.clearOverlays = function() {
 	this.clearLines();
 	this.clearMarkers();
@@ -336,6 +316,7 @@ Map.prototype.clearMarkers = function() {
 Map.prototype.markerVisibility = function(visible, orgType) {
 	var me = this;
 	
+	// Hide/Show all markers for this organization type
 	$.each(this.markers, function(index, marker) {
 		if(marker.get("orgType") == orgType) {
 			marker.setVisible(visible);
@@ -368,7 +349,8 @@ Map.prototype.lineVisibility = function(visible, network) {
 	var me = this;
 	
 	networkVisibility[network] = visible;
-	
+
+	// Hide/Show all lines for this network type
 	$.each(this.lines, function(index, line) {
 		if(line.get("network") == network)
 			line.setVisible(visible);	
@@ -380,11 +362,6 @@ Map.prototype.updatePlace = function(place) {
 	var me = this;
 	$.each(this.markers, function(index, marker) {
 		if (marker.placename == place.uuid) {
-			/*
-			var colour = place.organizationType.colour;
-			var icon = $.extend({}, me.circle, {fillColor: colour});
-			marker.setIcon(icon);
-			*/
 			marker.setMap(null);
 			me.markers.pop(marker);
 			var newMarker = me.drawPlace(place, marker.linkCallback, marker.selectCallback, marker.dragCallback, marker.dragEndCallback);
@@ -396,14 +373,6 @@ Map.prototype.updatePlace = function(place) {
 Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCallback, dragEndCallback, bounce) {
 	var ll = new google.maps.LatLng(place.geom.coordinates[1], place.geom.coordinates[0]);
 
-	/*
-	var image = new google.maps.MarkerImage('http://maps.google.com/mapfiles/kml/pal4/icon57.png',
-		      new google.maps.Size(32, 32),
-		      new google.maps.Point(0,0),
-		      new google.maps.Point(16, 16));
-	*/
-	
-	
 	var animation = null;
 	var draggable = dragAllowed;
 	if(bounce) { 
@@ -419,9 +388,6 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
 	        new google.maps.Size(29, 39),
 	        new google.maps.Point(0,0),
 	        new google.maps.Point(14, 39));
-	// var icon = $.extend({}, this.circle, {fillColor: colour});
-	
-	
 	
 	var marker = new google.maps.Marker({
 		position: ll,
@@ -461,8 +427,6 @@ Map.prototype.drawPlace = function(place, linkCallback, selectCallback, dragCall
     });
 
     google.maps.event.addListener(marker, 'drag', function (e) {
-    	//me.oms.unspiderfy();
-    	       
     	console.log("trying to drag:",marker);
     	var place = indexedPlaces[marker.placename];
     	console.log(indexedPlaces[marker.placename]);
@@ -956,12 +920,6 @@ Map.prototype.createMidMarker = function(idx,line,point,lastpoint) {
 	var path = line.getPath();
 	
 	var position = this.getMidPoint(point, lastpoint);
-	
-//	
-//	var position = new google.maps.LatLng(
-//	    		point.lat() - (0.5 * (point.lat() - lastpoint.lat())),
-//	    		point.lng() - (0.5 * (point.lng() - lastpoint.lng()))
-//	    	);
 	console.log("position", position);
 
 	var marker = new google.maps.Marker({
@@ -994,63 +952,3 @@ Map.prototype.createMidMarker = function(idx,line,point,lastpoint) {
 	});
 };
 
-/*
-Map.prototype.updateSpeeds = function(speeds) {
-	$('#speedSelect').find('option').remove();
-	$.each(speeds, function(idx, itm) {
-			var option = $("<option>", {value:itm.speed}).html(itm.speed);
-			if(link.connectionSpeed.speed == itm.connectionSpeed)
-				option.attr("selected", "selected");
-			option.appendTo(select);
-	});
-};
-
-Map.prototype.updateNetworks = function(networks) {
-	$('#networkSelect').find('option').remove();
-	$.each(networks, function(idx, itm) {
-			var option = $("<option>", {value:itm.name}).html(itm.name);
-			if(link.connectionSpeed.speed == itm.connectionSpeed)
-				option.attr("selected", "selected");
-			option.appendTo(select);
-	});
-};
-*/
-
-
-/*
-var GmapsCubicBezier = function(lat1, long1, lat2, long2, lat3, long3, lat4, long4, resolution, map, click){
-
-    var points = [];
-
-    for(it = 0; it <= 1; it += resolution) {
-        points.push(this.getBezier({x:lat1, y:long1},{x:lat2, y:long2},{x:lat3, y:long3},{x:lat4, y:long4}, it));
-    }
-
-    for(var i = 0; i < points.length - 1; i++) {
-            var Line = new google.maps.Polyline({
-                path: [new google.maps.LatLng(points[i].x, points[i].y), new google.maps.LatLng(points[i+1].x, points[i+1].y)],
-                geodesic: true,
-                strokeColor: "#30B9ED",
-                strokeOpacity: 1.0,
-                strokeWeight: 4
-            }); 
-
-            Line.setMap(map);   
-    }
-};
-
-
-GmapsCubicBezier.prototype = {
-
-    B1 : function (t) { return t*t*t; },
-    B2 : function (t) { return 3*t*t*(1-t); },
-    B3 : function (t) { return 3*t*(1-t)*(1-t); },
-    B4 : function (t) { return (1-t)*(1-t)*(1-t); },
-    getBezier : function (C1,C2,C3,C4, percent) {
-        var pos = {};
-        pos.x = C1.x*this.B1(percent) + C2.x*this.B2(percent) + C3.x*this.B3(percent) + C4.x*this.B4(percent);
-        pos.y = C1.y*this.B1(percent) + C2.y*this.B2(percent) + C3.y*this.B3(percent) + C4.y*this.B4(percent);
-        return pos;
-    }
-};
-*/
