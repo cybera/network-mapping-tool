@@ -86,7 +86,7 @@ $(document).ready(function() {
 			});
 		},
 		displayAttribute: 'type',
-		defaultObject: {type: '', colour: '#FFFFFF'}
+		defaultObject: {type: '', legendIcon: '', mapIcon: ''}
 	});
 	
 	

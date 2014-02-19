@@ -20,7 +20,7 @@ public class OrganizationType {
 	@Column(name = "UUID")
 	private String UUID;
 	
-	@Column(name = "type")
+	@Column(name = "type", unique = true)
 	private String type;
 	
 	@Column(name = "mapIcon", nullable = false)

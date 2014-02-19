@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import ca.cybera.netmap.assembler.NetworkConnectionAssembler;
 import ca.cybera.netmap.dto.NetworkConnectionDTO;
+import ca.cybera.netmap.exception.ValidationException;
 import ca.cybera.netmap.model.ConnectionSpeed;
 import ca.cybera.netmap.model.Graph;
 import ca.cybera.netmap.model.Network;
@@ -24,8 +25,10 @@ import ca.cybera.netmap.service.NetworkConnectionService;
 @RequestMapping("/networkConnection")
 public class NetworkConnectionController extends BaseController {
 
-	@Inject private NetworkConnectionService service;
-	@Inject private NetworkConnectionAssembler assembler;
+	@Inject
+	private NetworkConnectionService service;
+	@Inject
+	private NetworkConnectionAssembler assembler;
 
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	public @ResponseBody
@@ -70,11 +73,9 @@ public class NetworkConnectionController extends BaseController {
 	@RequestMapping(value = "/network", method = RequestMethod.POST)
 	public @ResponseBody
 	Network post(@RequestBody Network network) throws Exception {
-
 		return service.save(network);
-
 	}
-	
+
 	@RequestMapping(value = "/networks", method = RequestMethod.GET)
 	public @ResponseBody
 	List<Network> getAllNetworks() throws Exception {
@@ -82,19 +83,18 @@ public class NetworkConnectionController extends BaseController {
 		return service.getNetworks();
 
 	}
-	
+
 	@RequestMapping(value = "network/{uuid}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	void deleteNetwork(@PathVariable("uuid") String uuid) throws Exception {
 		try {
-		service.deleteNetwork(uuid);
-	} catch(DataIntegrityViolationException e) {
-		throw new Exception("Cannot Remove: One or more network connections depends on this network, update those connections and try again.");
-	}
+			service.deleteNetwork(uuid);
+		} catch (DataIntegrityViolationException e) {
+			throw new Exception("Cannot Remove: One or more network connections depends on this network, update those connections and try again.");
+		}
 
 	}
 
-	
 	@RequestMapping(value = "/speed", method = RequestMethod.POST)
 	public @ResponseBody
 	ConnectionSpeed post(@RequestBody ConnectionSpeed speed) throws Exception {
@@ -102,7 +102,7 @@ public class NetworkConnectionController extends BaseController {
 		return service.save(speed);
 
 	}
-	
+
 	@RequestMapping(value = "/speeds", method = RequestMethod.GET)
 	public @ResponseBody
 	List<ConnectionSpeed> getAllSpeeds() throws Exception {
@@ -110,13 +110,13 @@ public class NetworkConnectionController extends BaseController {
 		return service.getConnectionSpeeds();
 
 	}
-	
+
 	@RequestMapping(value = "speed/{uuid}", method = RequestMethod.DELETE)
 	public @ResponseBody
 	void deleteSpeed(@PathVariable("uuid") String uuid) throws Exception {
 		try {
 			service.deleteConnectionSpeed(uuid);
-		} catch(DataIntegrityViolationException e) {
+		} catch (DataIntegrityViolationException e) {
 			throw new Exception("Cannot Remove: One or more network connections depends on this speed, update those connections and try again.");
 		}
 

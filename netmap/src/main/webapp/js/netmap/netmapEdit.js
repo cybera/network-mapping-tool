@@ -297,6 +297,7 @@ function setupTable() {
 				// only call if user actually click (otherwise recursive loop)
 				if (indexedPlaces[id].marker) {
 					map.zoomTo(indexedPlaces[id].marker);
+					map.click(id);
 				}
 			}
 
