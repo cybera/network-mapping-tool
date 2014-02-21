@@ -102,7 +102,8 @@ function Map() {
          overlay = new google.maps.OverlayView();
          overlay.draw = function() {};
          overlay.setMap(this.map);
-         
+        
+         //workaround for difficulty on clicking on thin lines, process clicks on map and see if they are close to a line
          google.maps.event.addListener(this.map, 'click', function(event) {
         
         	 console.log("check line...");
@@ -128,13 +129,9 @@ function Map() {
          
          
          this.oms = new OverlappingMarkerSpiderfier(this.map, {keepSpiderfied: true});
-         
-         
-         
+
          //The dragging of spiderified markers looks to be broken, so disable when in that mode.
-         
          this.oms.addListener('unspiderfy', function(markers) {
-        	 
         	 $.each(markers, function(idx, itm) {
         		 itm.setOptions({
         			 draggable: dragAllowed
@@ -142,7 +139,6 @@ function Map() {
 
         	 });
           });
-
          this.oms.addListener('spiderfy', function(markers) {
         	 me.infoWindow.close();
         	 
@@ -153,9 +149,7 @@ function Map() {
 
         	 });
           });
-
      	this.oms.addListener('click', function(marker) {
-//     		google.maps.event.addListener(marker, 'click', function() {
      			var base = $("<div>", {style: 'display: inline-block; padding: 5px; padding-bottom: 20px;'});
      			var header = $("<div>").html("<strong>"+indexedPlaces[marker.placename].name+"</strong>").appendTo(base);
      			$("<hr>").appendTo(base);
@@ -166,14 +160,12 @@ function Map() {
      			if(marker.selectCallback)
      				marker.selectCallback(marker.placename);
      			
-     			//$("<div>").html(marker.place.Address).appendTo(base);
      			if(!me.linkStart) {
      				if(editMode) {
 	     				var button = $("<button>").html("Draw Link").click(function() {
 	     					me.linkStart = marker.placename;
 	     					me.infoWindow.close();
 	     					
-	     					//map.getProjection().fromPointToLatLng(new google.maps.Point(x, y))
 	     					console.log("set path...");
 	     					
 	     					
@@ -217,9 +209,6 @@ function Map() {
      					}
      					me.linkStart = undefined;
      					me.linkLine.setMap(undefined);
-
-     					
-     				//}).button().text("Link End").appendTo(base);
      			}
      			
      		});
@@ -228,11 +217,9 @@ function Map() {
      		me.lastLatLng = e.latLng;
      		
      		if(me.linkStart) {
-//     			me.linkLine.setMap(me.map);
      			me.linkLine.getPath().setAt(1, e.latLng);
      		}
      	});     	
-
      	google.maps.event.addListener(this.map, 'mouseover', function(e) {
      		console.log("mouseover...");
      		me.lastLatLng = e.latLng;
@@ -242,6 +229,7 @@ function Map() {
 }
 
 Map.prototype.notifyEscape = function(marker) {
+	//handle ESC pressed
 	if(this.linkStart) {
 		this.linkStart = undefined;
 		this.linkLine.setMap(undefined);
@@ -284,28 +272,25 @@ Map.prototype.zoomTo = function(marker) {
 	var latlngbounds = new google.maps.LatLngBounds();
 	latlngbounds.extend(marker.getPosition());
 	this.map.panTo(latlngbounds.getCenter());
-	//google.maps.event.trigger(marker, 'click');
-
-//	this.map.fitBounds(latlngbounds); 
-}
+};
 
 Map.prototype.removeMarker = function(marker) {
 	if(marker) {
 		this.oms.removeMarker(marker);
 		marker.setMap(null);
 	}
-}
+};
 
 Map.prototype.clearOverlays = function() {
 	this.clearLines();
 	this.clearMarkers();
-}
+};
 
 Map.prototype.clearLines = function() {
 	$.each(this.lines, function(idx, itm) {
 		itm.setMap(null);
 	});
-}
+};
 
 Map.prototype.clearMarkers = function() {
 	$.each(this.markers, function(idx, itm) {
@@ -524,7 +509,7 @@ Map.prototype.storeLink = function(link) {
 Map.prototype.setStyle = function(style) {
 	this.style = style;
 	this.map.setOptions({styles: style});
-}
+};
 
 Map.prototype.getLatLng = function(coordinates) {
 	return new google.maps.LatLng(coordinates[1], coordinates[0]);
@@ -585,20 +570,23 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
     
     var me = this;
     
- 	google.maps.event.addListener(pl, 'rightclick', function(e) {
- 		var showpull = true;
- 		
- 		if(me.currentEditLine) {
- 			if(pl == me.currentEditLine.line) {
- 				showpull = false;
- 			}
- 			me.clearEditLine();
- 		}
- 		
- 		if(showpull) {
- 			me.createPullMarkers(pl, link);
- 		}
- 	});
+    //handle right click on line to enable editing
+    if(editMode) {
+	 	google.maps.event.addListener(pl, 'rightclick', function(e) {
+	 		var showpull = true;
+	 		
+	 		if(me.currentEditLine) {
+	 			if(pl == me.currentEditLine.line) {
+	 				showpull = false;
+	 			}
+	 			me.clearEditLine();
+	 		}
+	 		
+	 		if(showpull) {
+	 			me.createPullMarkers(pl, link);
+	 		}
+	 	});
+    }
 
     
  	google.maps.event.addListener(pl, 'click', function(e) {
@@ -609,162 +597,169 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 			$("<hr>").appendTo(base);
 			
 			if(editMode) {
-				
+				//Show Popup to allow editing network connection
+
+				//speed
 				var speedDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
 				$("<label>", {text: 'Speed: '}).appendTo(speedDiv);
- 			var select = $("<select>", {id: 'speedSelect'}).appendTo(speedDiv);
- 			$.each(indexedLinkTypes, function(idx, itm) {
- 				var option = $("<option>", {value:itm.speed}).html(itm.speed);
- 				if(link.connectionSpeed.speed == itm.speed)
- 					option.attr("selected", "selected");
- 				option.appendTo(select);
-  			});
-
- 			select.change(function() {
- 				var newSpeed = indexedLinkTypes[$(this).prop('selectedIndex')];
- 				link.connectionSpeed = newSpeed;
- 				pl.setOptions({strokeWeight: newSpeed.lineThickness});
- 				saveNetworkConnection(link);
- 			});
-
+	 			var select = $("<select>", {id: 'speedSelect'}).appendTo(speedDiv);
+	 			$.each(indexedLinkTypes, function(idx, itm) {
+	 				var option = $("<option>", {value:itm.speed}).html(itm.speed);
+	 				if(link.connectionSpeed.speed == itm.speed)
+	 					option.attr("selected", "selected");
+	 				option.appendTo(select);
+	  			});
+	
+	 			select.change(function() {
+	 				var newSpeed = indexedLinkTypes[$(this).prop('selectedIndex')];
+	 				link.connectionSpeed = newSpeed;
+	 				pl.setOptions({strokeWeight: newSpeed.lineThickness});
+	 				saveNetworkConnection(link);
+	 			});
+	
+	 			//network
 				var networkDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
 				$("<label>", {text: 'Network: '}).appendTo(networkDiv);
- 			var select = $("<select>", {id: 'networkSelect'}).appendTo(networkDiv);
- 			$.each(networks, function(idx, itm) {
- 				var option = $("<option>", {value:itm.uuid}).html(itm.name);
- 				if(link.network.name == itm.name)
- 					option.attr("selected", "selected");
- 				option.appendTo(select);
-  			});
-
- 			select.change(function() {
- 				var newNetwork = networks[$(this).prop('selectedIndex')];
- 				link.network = newNetwork;
- 				pl.setOptions({strokeColor: newNetwork.colour});
- 				saveNetworkConnection(link);
- 			});
-
- 			var linksDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
- 			var deleteLink = $("<img>", {title:"Delete", id:"deleteLink", 'class':"btn", src: 'images/delete.png'});
-				$("<label>", {text: 'Links: ', style: 'vertical-align: top;'}).appendTo(linksDiv).append(deleteLink);
- 			var select = $("<select>", {id: 'linksSelect', style: 'width:100%;', multiple: 'multiple'}).appendTo(linksDiv);
- 			if (link.websites != null) {
-	 			$.each(link.websites, function(index, website) {
-						$("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']').appendTo(select);
+				var select = $("<select>", {id: 'networkSelect'}).appendTo(networkDiv);
+	 			$.each(networks, function(idx, itm) {
+	 				var option = $("<option>", {value:itm.uuid}).html(itm.name);
+	 				if(link.network.name == itm.name)
+	 					option.attr("selected", "selected");
+	 				option.appendTo(select);
+	  			});
+	
+	 			select.change(function() {
+	 				var newNetwork = networks[$(this).prop('selectedIndex')];
+	 				link.network = newNetwork;
+	 				pl.setOptions({strokeColor: newNetwork.colour});
+	 				saveNetworkConnection(link);
 	 			});
- 			}
- 			
- 			deleteLink.click(function(e) {
- 				var idsToDelete = $('#linksSelect').val();
- 				if (idsToDelete == null) {
- 					showToast("Select the link(s) you would like to delete.");
- 					return;
- 				}
- 				
- 				$.each(idsToDelete, function(index, id) {
- 					console.log("Going to delete: " + id);
- 					var obToDelete = $.grep(link.websites, function(item){
- 				      return item.uuid == id;
- 				    });
- 					console.log("Poping off " + JSON.stringify(obToDelete[0], null, 2));
- 					link.websites.splice($.inArray(obToDelete[0], link.websites),1);
- 					console.log("Now Have: " + JSON.stringify(link.websites, null, 2));
- 				});
- 				saveNetworkConnection(link, function(newLink) {
- 					link = newLink;
- 					$('#linksSelect').empty();
- 					$.each(newLink.websites, function(index, website) {
- 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
- 						$('#linksSelect').append(option);
- 					});
- 				});
- 				
- 			});
- 			
- 			var addLinkDiv = $("<div>").appendTo(linksDiv);
- 			$("<input>", {type: 'text', id: 'websiteLabel', placeholder: 'name'}).appendTo(addLinkDiv);
- 			$("<input>", {type: 'text', id: 'websiteUrl', placeholder: 'url', style: 'width:190px; margin-left:5px;'}).appendTo(addLinkDiv);
- 			var addLink = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addLinkDiv);
- 			
- 			var addGraphDiv = $("<div>").appendTo(linksDiv);
- 			$("<input>", {type: 'text', id: 'graphLabel', placeholder: 'name'}).appendTo(addGraphDiv);
- 			var select = $("<select>", {id: 'graphUrl', placeholder: 'graph', style: 'width:190px; margin-left:5px;'}).appendTo(addGraphDiv);
- 			var addGraph = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addGraphDiv);
- 		
- 			
- 			$.getJSON('ns/networkConnection/graphs', function(result) {
- 				$("<option>", {value: ''}).html('').appendTo(select);
- 				$.each(result, function(index, graph) {
- 					$("<option>", {value:graph.url}).html(graph.name).appendTo(select);
- 				});
- 			});
-			
- 			
- 			addLink.click(function() {
- 				if (! link.websites) link.websites = [];
- 				link.websites.push({url: $('#websiteUrl').val(), label: $('#websiteLabel').val()});
- 				saveNetworkConnection(link, function(newLink) {
- 					link = newLink;
- 					$('#linksSelect').empty();
- 					$('#websiteUrl').val('');
- 					$('#websiteLabel').val('');
- 					$.each(newLink.websites, function(index, website) {
- 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
- 						$('#linksSelect').append(option);
- 					});
- 				});
- 			});
-
- 			addGraph.click(function() {
- 				if (! link.websites) link.websites = [];
- 				link.websites.push({url: $('#graphUrl').val(), label: $('#graphLabel').val()});
- 				saveNetworkConnection(link, function(newLink) {
- 					link = newLink;
- 					$('#linksSelect').empty();
- 					$('#graphUrl').val('');
- 					$('#graphLabel').val('');
- 					$.each(newLink.websites, function(index, website) {
- 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
- 						$('#linksSelect').append(option);
- 					});
- 				});
- 			});
-
- 			
- 			var buttonDiv = $("<div>").appendTo(base);
- 			$("<button>", {style: 'diplay: inline-block; margin: 5px; padding: 0px;'}).html("Delete").click(function() {
- 				$.confirm("Do you want to delete this link?", {
- 					title: 'Confirm Delete',
- 					buttons: {
- 						"Yes": function() {
- 							$(this).dialog("close");
- 							deleteNetworkConnection(link, function() {
-	 			 				links.splice(links.indexOf(link), 1);
-	 			 				console.log(links);
-	 			 				
-	 			 				pl.setMap(null);
-	 			 				me.infoWindow.close();
- 							});
- 						},
- 						"No": function() {
- 							$(this).dialog("close");
- 						}
- 					}
- 				});
- 			}).button().appendTo(buttonDiv);
- 			
- 			$("<button>", {style: 'display: inline-block; margin: 5px; padding: 0px;'}).html("Edit Line").button().appendTo(buttonDiv).click(function() {
- 	        	 me.infoWindow.close();
-
- 				console.log("find midpoint and show marker", pl);
- 				//var path = pl.getPath();
- 				me.createPullMarkers(pl, link);
- 				
- 			});
+	
+	 			
+	 			//links
+	 			var linksDiv = $("<div>", {style: 'padding: 5px;'}).appendTo(base);
+	 			var deleteLink = $("<img>", {title:"Delete", id:"deleteLink", 'class':"btn", src: 'images/delete.png'});
+					$("<label>", {text: 'Links: ', style: 'vertical-align: top;'}).appendTo(linksDiv).append(deleteLink);
+	 			var select = $("<select>", {id: 'linksSelect', style: 'width:100%;', multiple: 'multiple'}).appendTo(linksDiv);
+	 			if (link.websites != null) {
+		 			$.each(link.websites, function(index, website) {
+							$("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']').appendTo(select);
+		 			});
+	 			}
+	 			
+	 			deleteLink.click(function(e) {
+	 				var idsToDelete = $('#linksSelect').val();
+	 				if (idsToDelete == null) {
+	 					showToast("Select the link(s) you would like to delete.");
+	 					return;
+	 				}
+	 				
+	 				$.each(idsToDelete, function(index, id) {
+	 					console.log("Going to delete: " + id);
+	 					var obToDelete = $.grep(link.websites, function(item){
+	 				      return item.uuid == id;
+	 				    });
+	 					console.log("Poping off " + JSON.stringify(obToDelete[0], null, 2));
+	 					link.websites.splice($.inArray(obToDelete[0], link.websites),1);
+	 					console.log("Now Have: " + JSON.stringify(link.websites, null, 2));
+	 				});
+	 				saveNetworkConnection(link, function(newLink) {
+	 					link = newLink;
+	 					$('#linksSelect').empty();
+	 					$.each(newLink.websites, function(index, website) {
+	 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
+	 						$('#linksSelect').append(option);
+	 					});
+	 				});
+	 				
+	 			});
+	 			
+	 			var addLinkDiv = $("<div>").appendTo(linksDiv);
+	 			$("<input>", {type: 'text', id: 'websiteLabel', placeholder: 'name'}).appendTo(addLinkDiv);
+	 			$("<input>", {type: 'text', id: 'websiteUrl', placeholder: 'url', style: 'width:190px; margin-left:5px;'}).appendTo(addLinkDiv);
+	 			var addLink = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addLinkDiv);
+	 			
+	 			var addGraphDiv = $("<div>").appendTo(linksDiv);
+	 			$("<input>", {type: 'text', id: 'graphLabel', placeholder: 'name'}).appendTo(addGraphDiv);
+	 			var select = $("<select>", {id: 'graphUrl', placeholder: 'graph', style: 'width:190px; margin-left:5px;'}).appendTo(addGraphDiv);
+	 			var addGraph = $("<img>", {title:"Add", id:"addLink", 'class':"btn", src: 'images/add.png'}).appendTo(addGraphDiv);
+	 		
+	 			
+	 			$.getJSON('ns/networkConnection/graphs', function(result) {
+	 				$("<option>", {value: ''}).html('').appendTo(select);
+	 				$.each(result, function(index, graph) {
+	 					$("<option>", {value:graph.url}).html(graph.name).appendTo(select);
+	 				});
+	 			});
+				
+	 			
+	 			addLink.click(function() {
+	 				if (! link.websites) link.websites = [];
+	 				link.websites.push({url: $('#websiteUrl').val(), label: $('#websiteLabel').val()});
+	 				saveNetworkConnection(link, function(newLink) {
+	 					link = newLink;
+	 					$('#linksSelect').empty();
+	 					$('#websiteUrl').val('');
+	 					$('#websiteLabel').val('');
+	 					$.each(newLink.websites, function(index, website) {
+	 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
+	 						$('#linksSelect').append(option);
+	 					});
+	 				});
+	 			});
+	
+	 			addGraph.click(function() {
+	 				if (! link.websites) link.websites = [];
+	 				link.websites.push({url: $('#graphUrl').val(), label: $('#graphLabel').val()});
+	 				saveNetworkConnection(link, function(newLink) {
+	 					link = newLink;
+	 					$('#linksSelect').empty();
+	 					$('#graphUrl').val('');
+	 					$('#graphLabel').val('');
+	 					$.each(newLink.websites, function(index, website) {
+	 						var option = $("<option>", {value:website.uuid}).html(website.label + ' [' + website.url + ']');
+	 						$('#linksSelect').append(option);
+	 					});
+	 				});
+	 			});
+	
+	 			//handle delete of connection
+	 			var buttonDiv = $("<div>").appendTo(base);
+	 			$("<button>", {style: 'diplay: inline-block; margin: 5px; padding: 0px;'}).html("Delete").click(function() {
+	 				$.confirm("Do you want to delete this link?", {
+	 					title: 'Confirm Delete',
+	 					buttons: {
+	 						"Yes": function() {
+	 							$(this).dialog("close");
+	 							deleteNetworkConnection(link, function() {
+		 			 				links.splice(links.indexOf(link), 1);
+		 			 				console.log(links);
+		 			 				
+		 			 				pl.setMap(null);
+		 			 				me.infoWindow.close();
+	 							});
+	 						},
+	 						"No": function() {
+	 							$(this).dialog("close");
+	 						}
+	 					}
+	 				});
+	 			}).button().appendTo(buttonDiv);
+	 			
+	 			//start line editing on connection
+	 			$("<button>", {style: 'display: inline-block; margin: 5px; padding: 0px;'}).html("Edit Line").button().appendTo(buttonDiv).click(function() {
+	 	        	 me.infoWindow.close();
+	
+	 				console.log("find midpoint and show marker", pl);
+	 				//var path = pl.getPath();
+	 				me.createPullMarkers(pl, link);
+	 				
+	 			});
  			
  			
 			}
 			else {
+				//Show Popup for user mode
 				var div = $("<div>", {style: 'display: inline-block; padding-top: 5px; width:100%;'}).appendTo(base);
  				$("<div>").html("<B>Speed:</B> " + link.connectionSpeed.speed).appendTo(div);
  				$("<div>").html("<B>Network:</B> " + link.network.name).appendTo(div);
@@ -838,17 +833,13 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 				var endLatLng = new google.maps.LatLng(to.latitude, to.longitude);
 				
 				var midLatLng = me.getMidPoint(startLatLng, endLatLng);
-			me.infoWindow.setPosition(midLatLng);
+				me.infoWindow.setPosition(midLatLng);
 			}
 			me.currentUUID = link.uuid;
 			me.infoWindow.open(me.map);
 	});
 
- 	
- 	
-    
- 	
- 	
+
 	if(from.links == undefined)
 		from.links = [];
 	if(to.links == undefined)
@@ -856,8 +847,6 @@ Map.prototype.drawLink = function(link, from, to, type, click) {
 	
 	from.links.push({coordpos: 0, line: pl, connection: link});
 	to.links.push({coordpos: 1, line: pl, connection: link});
-
-	// if (click) google.maps.event.trigger(pl, 'click');
     
     return pl;
 };
@@ -873,6 +862,7 @@ Map.prototype.createPullMarkers = function(line, link) {
 	this.midmarkers = [];
 	this.waymarkers = [];
 	
+	//step thru path and create draggable markers at midpoints and waypoints
 	var path = line.getPath();
 	path.forEach(function(point, idx) {
 		if(idx > 0) {
@@ -891,6 +881,7 @@ Map.prototype.createWayMarker = function(idx, line, point) {
 	var me = this;
 	var path = line.getPath();
 	
+	//create a waypoint maker that can be dragged or double-clicked to be deleted
 	var marker = new google.maps.Marker({
     	position: point,
     	map: me.map,
@@ -942,6 +933,7 @@ Map.prototype.createMidMarker = function(idx,line,point,lastpoint) {
 	var position = this.getMidPoint(point, lastpoint);
 	console.log("position", position);
 
+	//create a midpoint maker that can be dragged or double-clicked to be deleted
 	var marker = new google.maps.Marker({
     	position: position,
     	map: me.map,

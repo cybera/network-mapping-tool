@@ -3,6 +3,7 @@ var lastsel;
 $(document).ready(function() {
 	console.log('Loading Edit Mode');
 
+	//allow resizing of grid/map
 	$("#bottom").resizable({
 		handles : "n"
 	}).resize(function(event) {
@@ -10,7 +11,7 @@ $(document).ready(function() {
 		return false;
 	});
 
-	// toolbar
+	// toolbar actions
 	$("#fileinput").hide().fileReaderJS({
 		on : {
 			load : function(e, file) {
@@ -29,17 +30,6 @@ $(document).ready(function() {
 		$("#fileinput").click();
 		return false;
 	});
-
-//	$("#exportButton").click(function() {
-//		outputTable();
-//	});
-
-//	$("#linkTypeButton").click(function() {
-//		$("#linkTypes").html(JSON.stringify(indexedLinkTypes, null, 2));
-//		$("#linkTypeDialog").dialog("open");
-//	});
-
-
 
 	$("#linkTypeDialog").dialog({
 		autoOpen : false,
@@ -95,26 +85,7 @@ $(document).ready(function() {
 		showToast(msg);
 	});
 
-	// setup export dialog
-	$("#placecsvdownload").button();
-	$("#linkcsvdownload").button();
-	$("#jsondownload").button();
-
-	$("#outputtabs textarea").focus(function() {
-		this.select();
-		this.onmouseup = function() {
-			this.onmouseup = null;
-			return false;
-		};
-	});
-	var tabs = $("#outputtabs").tabs();
-
-	tabs.dialog({
-		width : 'auto',
-		autoOpen : false
-
-	});
-
+	
 	setupTable();
 });
 
@@ -149,8 +120,7 @@ function setupTable() {
 			opts.key = true;
 			opts.hidden = true;
 		}
-
-		if (key == 'organizationType') {
+		else if (key == 'organizationType') {
 			opts.edittype = 'custom';
 			opts.editoptions = {
 				custom_element : function(value, options) {
@@ -203,7 +173,6 @@ function setupTable() {
 	console.log("colModel:", colModel);
 
 	tableOptions = {
-//			multiselect: true,
 		grouping : true,
 		groupingView : {
 			groupField : [ 'province' ],
@@ -220,46 +189,6 @@ function setupTable() {
 		rowList : [ 10, 20, 30 ],
 		scroll : true,
 		scrollrows : true,
-		// pager: '#pagernav',
-
-
-//		gridComplete: function() {
-//			$(this).jqGrid('hideCol', 'cb');
-//		},
-//		beforeSelectRow: function (rowid, e) {
-//            if (!e.ctrlKey && !e.shiftKey) {
-//                $(this).jqGrid('resetSelection');
-//            }
-//            else if (e.shiftKey) {
-//                var initialRowSelect = $(this).jqGrid('getGridParam', 'selrow');
-//                $(this).jqGrid('resetSelection');
-//
-//                var CurrentSelectIndex = $(this).jqGrid('getInd', rowid);
-//                var InitialSelectIndex = $(this).jqGrid('getInd', initialRowSelect);
-//                var startID = "";
-//                var endID = "";
-//                if (CurrentSelectIndex > InitialSelectIndex) {
-//                    startID = initialRowSelect;
-//                    endID = rowid;
-//                }
-//                else {
-//                    startID = rowid;
-//                    endID = initialRowSelect;
-//                }
-//
-//                	console.log(this);
-//                var shouldSelectRow = false;
-//                $.each($(this).jqGrid("getDataIDs"), function(_, id){
-//                		console.log("id:",id);
-//                    if ((shouldSelectRow = id == startID || shouldSelectRow)){
-//                    	console.log("call setSelection",id,false);
-//                      $("#placeTable").jqGrid('setSelection', id, false);
-//                    }
-//                    return id != endID;                        
-//                });
-//            }
-//            return true;
-//        },
 		
 		onSelectRow : function(id, status, event) {
 			// check if edit bailed
@@ -313,16 +242,19 @@ function setupTable() {
 
 	};
 
-	var table = $("#placeTable").jqGrid(tableOptions).navGrid("#pagernav", {
-		edit : false,
-		add : false,
-		del : false
-	});
+	var table = $("#placeTable").jqGrid(tableOptions);
+	
+//	.navGrid("#pagernav", {
+//		edit : false,
+//		add : false,
+//		del : false
+//	});
 
 	// set data reference directly on table so that we are linked for updates
 	table[0].p.data = places;
 	table.trigger('reloadGrid');
 
+	//handle right click on rows
 	$.contextMenu({
 		selector : ".ui-jqgrid tr",
 		build : function($trigger, e) {
@@ -330,7 +262,6 @@ function setupTable() {
 
 			console.log('^^^^^^^^^^^^^^^^^^^^^^^^^ target:', $(e.target));
 
-			// var id = $(e.target).parent('th').attr('id');
 			var id = $trigger.attr('id');
 
 			var items = {
@@ -352,8 +283,9 @@ function setupTable() {
 					if (key == "edit")
 						editRow(sel);
 					else if (key == "geocode") {
+						
+						//Geocode with google maps api
 						var geocoder = new google.maps.Geocoder();
-
 						geocoder.geocode({
 							address : address
 						}, function(results, status) {
@@ -537,10 +469,6 @@ function createLink(from, to, open) {
 }
 
 function handleDrag(place) {
-	// $("#placeTable").jqGrid('setCell', place.uuid, 'latitude',
-	// place.latitude);
-	// $("#placeTable").jqGrid('setCell', place.uuid, 'longitude',
-	// place.longitude);
 }
 
 function handleDragEnd(place) {
@@ -549,14 +477,7 @@ function handleDragEnd(place) {
 }
 
 function handleSelectPlace(id) {
-//	var selected = $("#placeTable").jqGrid('getGridParam', 'selarrrow');
-//	var alreadySelected = $.grep(selected, function(obj, idx) {
-//		if(obj == id)
-//			return true;
-//	});
-//	
-//	if(!alreadySelected[0])
-		$("#placeTable").jqGrid('setSelection', id);
+	$("#placeTable").jqGrid('setSelection', id);
 }
 
-//@ sourceURL=edit.js
+//@ sourceURL=netmapEdit.js
