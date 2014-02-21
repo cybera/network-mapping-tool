@@ -332,8 +332,14 @@ Map.prototype.markerVisibility = function(visible, orgType) {
 				else {
 					//re-show the links that should be visible
 					$.each(links, function(idx, link) {
+						//check visibility of the marker at the other end of the link
+						var pos = 'orgStartUUID';
+						if(link.coordpos == 0)
+							pos = 'orgEndUUID';
+						var linkOppositeVisible = indexedPlaces[link.connection[pos]].marker.getVisible();
+						
 						//only re-enable if the network layer is supposed to be visible
-						if(link.connection.network && networkVisibility[link.connection.network.uuid])
+						if(link.connection.network && networkVisibility[link.connection.network.uuid] && linkOppositeVisible)
 							link.line.setVisible(true);
 					});
 					
@@ -352,8 +358,22 @@ Map.prototype.lineVisibility = function(visible, network) {
 
 	// Hide/Show all lines for this network type
 	$.each(this.lines, function(index, line) {
-		if(line.get("network") == network)
-			line.setVisible(visible);	
+		if(line.get("network") == network) {
+			if(!visible)
+				line.setVisible(visible);
+			else {
+				//find the link for this line
+				var link = $.grep(links, function(e, i) {
+				if(e.uuid == line.uuid)
+				  return true;
+				})[0];
+				
+				//check both markers are visible in order to turn on
+				if(indexedPlaces[link.orgEndUUID].marker.getVisible() && indexedPlaces[link.orgStartUUID].marker.getVisible()) {
+					line.setVisible(visible);
+				}
+			}
+		}
 	});
 };
 
