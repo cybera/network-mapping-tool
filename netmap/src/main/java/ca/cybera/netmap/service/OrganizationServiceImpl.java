@@ -10,15 +10,15 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import org.postgresql.util.PSQLException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ca.cybera.netmap.exception.ValidationException;
 import ca.cybera.netmap.model.Organization;
 import ca.cybera.netmap.model.OrganizationDisplay;
 import ca.cybera.netmap.model.OrganizationType;
@@ -50,13 +50,13 @@ public class OrganizationServiceImpl implements OrganizationService {
 
 	@Override
 	public Organization save(Organization organization) {
-		
+
 		return entityManager.merge(organization);
 
 	}
 
 	@Override
-	public void delete(String uuid){
+	public void delete(String uuid) {
 		entityManager.remove(get(uuid));
 	}
 
@@ -68,19 +68,19 @@ public class OrganizationServiceImpl implements OrganizationService {
 	}
 
 	@Override
-	public void  importKML(InputStream is) throws Exception {
-		
+	public void importKML(InputStream is) throws Exception {
+
 		StringBuffer buf = new StringBuffer();
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		String ln;
-		while((ln=br.readLine())!= null) {
+		while ((ln = br.readLine()) != null) {
 			buf.append(ln);
 		}
 		String kmlinput = buf.toString();
 		kmlinput = kmlinput.replaceAll("http://earth.google.com/kml/2.2", "http://www.opengis.net/kml/2.2");
-		
-		System.out.println("load: "+kmlinput);
-		
+
+		System.out.println("load: " + kmlinput);
+
 		Kml kml = Kml.unmarshal(kmlinput);
 		parseKMLFeature(kml.getFeature());
 	}
@@ -102,29 +102,27 @@ public class OrganizationServiceImpl implements OrganizationService {
 			}
 		} else if (f instanceof Placemark) {
 			Placemark p = (Placemark) f;
-			
+
 			addPlacemarkAsOrg(p);
 		}
 	}
 
 	private String getComponent(List<String> components, int pos) {
 		String ret = null;
-		if(pos < components.size()) {
+		if (pos < components.size()) {
 			ret = components.get(pos).trim();
-			
-			if(ret.length() >= 255) {
+
+			if (ret.length() >= 255) {
 				System.out.println("\n\n\n*********************************************************************************************\n\n\n");
 			}
-				
-			System.out.println("ret: "+ret+" -> "+ret.length());
-			
-			
+
+			System.out.println("ret: " + ret + " -> " + ret.length());
+
 		}
 
-		
 		return ret;
 	}
-	
+
 	private void addPlacemarkAsOrg(Placemark p) throws Exception {
 		Geometry g = p.getGeometry();
 
@@ -132,14 +130,14 @@ public class OrganizationServiceImpl implements OrganizationService {
 		o.setName(p.getName());
 		o.setAddress(p.getAddress());
 		o.setPhone(p.getPhoneNumber());
-		
+
 		String desc = p.getDescription();
-		if(desc != null){
+		if (desc != null) {
 			String[] toks = desc.split(",");
-			
+
 			List<String> components = Arrays.asList(toks);
 			Collections.reverse(components);
-			
+
 			o.setPostalCode(getComponent(components, 0));
 			o.setProvince(getComponent(components, 1));
 			o.setCity(getComponent(components, 2));
@@ -147,31 +145,28 @@ public class OrganizationServiceImpl implements OrganizationService {
 			System.out.println(desc);
 			System.out.println(desc.length());
 		}
-		
-		 if(g instanceof Point) {
-				Point point = (Point)g;
-				List<Coordinate> coords = point.getCoordinates();
-				
-				o.setGeom(gf.createPoint(getJTSCoordinates(point.getCoordinates())[0]));
-			}
-		 else {
-			 throw new Exception("Geometry must be a point in order to import as an Organization");
-		 }
-		 
-		 System.out.println(o);
-		 save(o);
+
+		if (g instanceof Point) {
+			Point point = (Point) g;
+
+			o.setGeom(gf.createPoint(getJTSCoordinates(point.getCoordinates())[0]));
+		} else {
+			throw new Exception("Geometry must be a point in order to import as an Organization");
+		}
+
+		System.out.println(o);
+		save(o);
 	}
-	
+
 	private com.vividsolutions.jts.geom.Coordinate[] getJTSCoordinates(List<Coordinate> coords) {
 		List<com.vividsolutions.jts.geom.Coordinate> jtsCoords = new ArrayList<>();
-		for(Coordinate kmlCoord: coords) {
+		for (Coordinate kmlCoord : coords) {
 			jtsCoords.add(new com.vividsolutions.jts.geom.Coordinate(kmlCoord.getLongitude(), kmlCoord.getLatitude(), kmlCoord.getAltitude()));
 		}
 
-		return jtsCoords.toArray(new com.vividsolutions.jts.geom.Coordinate[]{});
+		return jtsCoords.toArray(new com.vividsolutions.jts.geom.Coordinate[] {});
 	}
 
-	
 	@Override
 	public List<Organization> get(OrganizationType type) {
 
@@ -187,8 +182,15 @@ public class OrganizationServiceImpl implements OrganizationService {
 
 	@Override
 	public OrganizationType save(OrganizationType type) {
-
-		return entityManager.merge(type);
+		try {
+			OrganizationType ot = entityManager.merge(type);
+			entityManager.flush();
+			return ot;
+		} catch (PersistenceException ex) {
+			System.err.println("Error Saving Organization Type: " + ex.getMessage());
+			ex.printStackTrace();
+			throw new ValidationException("Organization type name must be unique");
+		}
 
 	}
 
@@ -198,34 +200,31 @@ public class OrganizationServiceImpl implements OrganizationService {
 		return entityManager.createQuery("select o from OrganizationType o", OrganizationType.class).getResultList();
 
 	}
-	
+
 	@Override
-	public void deleteType(String uuid){
+	public void deleteType(String uuid) {
 		entityManager.remove(getType(uuid));
 	}
-
 
 	@Override
 	public OrganizationType getType(String type) {
 
 		return entityManager.find(OrganizationType.class, type);
-		
+
 	}
 
-	
 	@Override
 	public List<OrganizationDisplay> getOrgDisplay() {
 
 		return entityManager.createQuery("select o from OrganizationDisplay o  order by o.sortOrder", OrganizationDisplay.class).getResultList();
 
 	}
-	
+
 	@Override
 	public void saveOrgDisplay(List<OrganizationDisplay> displays) {
-		for(OrganizationDisplay od : displays) {
+		for (OrganizationDisplay od : displays) {
 			entityManager.merge(od);
 		}
 	}
-	
-	
+
 }

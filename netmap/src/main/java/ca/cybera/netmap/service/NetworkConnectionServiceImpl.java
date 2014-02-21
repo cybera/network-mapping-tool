@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ca.cybera.netmap.exception.ValidationException;
 import ca.cybera.netmap.model.ConnectionSpeed;
 import ca.cybera.netmap.model.Graph;
 import ca.cybera.netmap.model.Network;
@@ -27,11 +29,11 @@ public class NetworkConnectionServiceImpl implements NetworkConnectionService {
 
 	@PersistenceContext
 	private EntityManager entityManager;
-	
-	@Value("${graphListUrl}") 
+
+	@Value("${graphListUrl}")
 	private String graphListUrl;
 
-	@Value("${graphUrl}") 
+	@Value("${graphUrl}")
 	private String graphUrl;
 
 	@Override
@@ -77,9 +79,13 @@ public class NetworkConnectionServiceImpl implements NetworkConnectionService {
 
 	@Override
 	public Network save(Network network) {
-
-		return entityManager.merge(network);
-
+		try {
+			Network n = entityManager.merge(network);
+			entityManager.flush();
+			return n;
+		} catch (PersistenceException ex) {
+			throw new ValidationException("Network name must be unique");
+		}
 	}
 
 	@Override
@@ -98,8 +104,13 @@ public class NetworkConnectionServiceImpl implements NetworkConnectionService {
 
 	@Override
 	public ConnectionSpeed save(ConnectionSpeed connectionSpeed) {
-
-		return entityManager.merge(connectionSpeed);
+		try {
+			ConnectionSpeed cs = entityManager.merge(connectionSpeed);
+			entityManager.flush();
+			return cs;
+		} catch (PersistenceException ex) {
+			throw new ValidationException("Connection speed must be unique.");
+		}
 
 	}
 
@@ -139,14 +150,15 @@ public class NetworkConnectionServiceImpl implements NetworkConnectionService {
 			connection.setDoInput(true);
 			ObjectMapper mapper = new ObjectMapper();
 			GraphsResponse response = mapper.readValue(connection.getInputStream(), GraphsResponse.class);
-			
+
 			List<Graph> graphs = new ArrayList<Graph>();
-			for (String g : response.getGraphs()) graphs.add(new Graph(graphUrl, g));
+			for (String g : response.getGraphs())
+				graphs.add(new Graph(graphUrl, g));
 			return graphs;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 }

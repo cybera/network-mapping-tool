@@ -297,6 +297,7 @@ function setupTable() {
 				// only call if user actually click (otherwise recursive loop)
 				if (indexedPlaces[id].marker) {
 					map.zoomTo(indexedPlaces[id].marker);
+					map.click(id);
 				}
 			}
 
@@ -473,15 +474,18 @@ function editRow(id) {
 
 function saveOrg(id) {
 	lastsel = undefined;
+	
+	var record = $.extend({}, indexedPlaces[id]);
+	
 	// update back to objects
 	var pos = indexedPlaces[id].marker.getPosition();
-	indexedPlaces[id].geom = {
+	record.geom = {
 		type : "Point",
 		coordinates : [ pos.lng(), pos.lat() ]
 	};
-	indexedPlaces[id].organizationType = orgTypesByType[indexedPlaces[id].organizationType];
+	record.organizationType = orgTypesByType[indexedPlaces[id].organizationType];
 
-	mergeOrganization(indexedPlaces[id]);
+	mergeOrganization(record);
 	map.updatePlace(indexedPlaces[id]);
 }
 
