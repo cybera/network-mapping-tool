@@ -12,7 +12,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +21,8 @@ import ca.cybera.netmap.model.ConnectionSpeed;
 import ca.cybera.netmap.model.Graph;
 import ca.cybera.netmap.model.Network;
 import ca.cybera.netmap.model.NetworkConnection;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Transactional

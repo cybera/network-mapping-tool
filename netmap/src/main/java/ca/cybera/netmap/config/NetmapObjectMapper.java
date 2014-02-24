@@ -1,15 +1,15 @@
 package ca.cybera.netmap.config;
 
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class NetmapObjectMapper extends ObjectMapper {
 
 	
 	public NetmapObjectMapper() {
 		super();
-		setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-		configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		setSerializationInclusion(JsonInclude.Include.NON_NULL); // no more null-valued properties
+		configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 }

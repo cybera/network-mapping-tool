@@ -7,10 +7,22 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+  
+   <annotation-driven>
+    <message-converters>
+        <beans:bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+            <beans:property name="objectMapper">
+                <beans:bean class="com.knappsack.swagger4springweb.util.ScalaObjectMapper"/>
+            </beans:property>
+        </beans:bean>
+    </message-converters>
+	</annotation-driven>
+	
+
 	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
 	
 	<!-- Enables the Spring MVC @Controller programming model -->
-	<annotation-driven />
+	 <annotation-driven /> 
 
     <beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
 		<beans:property name="maxUploadSize" value="5242880"/>
@@ -27,6 +39,11 @@
 	
 	<context:component-scan base-package="ca.cybera.netmap.controller" />
 	
-	
-	
+	<beans:bean id="documentationController" class="com.knappsack.swagger4springweb.controller.ApiDocumentationController">
+            <beans:property name="basePath" value="http://localhost:9090/netmap/ns"/>
+            <beans:property name="baseControllerPackage" value="ca.cybera.netmap.controller"/>
+            <beans:property name="baseModelPackage" value="ca.cybera.netmap.model"/>
+            <beans:property name="apiVersion" value="v1" />
+    </beans:bean>
+    
 </beans:beans>
