@@ -3,7 +3,7 @@ var lastsel;
 $(document).ready(function() {
 	console.log('Loading Edit Mode');
 
-	//allow resizing of grid/map
+	// allow resizing of grid/map
 	$("#bottom").resizable({
 		handles : "n"
 	}).resize(function(event) {
@@ -11,7 +11,11 @@ $(document).ready(function() {
 		return false;
 	});
 
+	//
 	// toolbar actions
+	//
+	
+	// allow for file upload
 	$("#fileinput").hide().fileReaderJS({
 		on : {
 			load : function(e, file) {
@@ -26,70 +30,57 @@ $(document).ready(function() {
 		}
 	});
 
+	// to import kml
 	$("#openButton").click(function() {
 		$("#fileinput").click();
 		return false;
 	});
 
-	$("#linkTypeDialog").dialog({
-		autoOpen : false,
-		modal : true,
-		width : 600,
-		buttons : {
-			"Update" : function() {
-				try {
-					indexedLinkTypes = JSON.parse($("#linkTypes").val());
-					showLinks();
-				} catch (e) {
-					alert("Unable to update link types: JSON failed to parse");
-				}
-				$(this).dialog("close");
-			},
-			Cancel : function() {
-				$(this).dialog("close");
-			}
-		}
-	});
-
+	// to add a new organization
 	$("#addButton").click(function() {
 		addRow();
 	});
 
+	// to edit the currently selected organization
 	$("#editButton").click(function() {
 		var row = $("#placeTable").jqGrid("getGridParam", "selrow");
 		console.log("row: ", row);
 		editRow(row);
 	});
 
+	// to delete the currently selected organization
 	$("#deleteButton").click(function() {
 		var row = $("#placeTable").jqGrid("getGridParam", "selrow");
 		console.log("row: ", row);
 		deleteRow(row);
 	});
 
+	// lock/unlock organzations from begin dragged
 	$("#lockButton").click(function() {
 		dragAllowed = !dragAllowed;
-		
+
 		var msg = "Map Pins are now locked and cannot be dragged.";
 		var img = "images/lock.png";
-		if(dragAllowed) {
+		if (dragAllowed) {
 			img = "images/unlock.png";
 			msg = "You can now drag the map pins.";
 		}
 		$("#lockButton").attr("src", img);
-		
+
 		$.each(places, function(idx, itm) {
 			itm.marker.setDraggable(dragAllowed);
 		});
-		
+
 		showToast(msg);
 	});
 
-	
+	// setup the organization table
 	setupTable();
 });
 
 function setupTable() {
+	
+	// if not in edit mode - bail
 	if (!editMode)
 		return;
 
@@ -99,14 +90,12 @@ function setupTable() {
 
 	// setup table model based on properties of object
 	$.each(placeObj, function(key, val) {
-		console.log("key:", key, "val:", val);
 
 		// Internal types we don't want in the table
 		if (key == 'marker' || key == 'links')
 			return true;
 
 		var name = key;
-		console.log('name:', name);
 		colNames.push(key);
 
 		var opts = {
@@ -116,10 +105,13 @@ function setupTable() {
 			sorttype : 'text'
 		};
 
+		// custom formatter for UUIDs
 		if (key == "uuid") {
 			opts.key = true;
 			opts.hidden = true;
-		}
+		} 
+		
+		// custom editor/formatter for organization types
 		else if (key == 'organizationType') {
 			opts.edittype = 'custom';
 			opts.editoptions = {
@@ -145,22 +137,18 @@ function setupTable() {
 					return val;
 				}
 			};
-			/*
-			opts.formatter = function (cellValue, options, rawData) {
-				if (cellValue instanceof String) return cellValue;
-				return cellValue.type;
-			};
-			opts.unformat = function (cellValue, options, rawData) {
-				console.log('Unformat: ' + cellValue);
-				return cellValue;
-			}
-			*/
-		} else if (key == 'connected') {
+		} 
+		
+		// custom editor/formatter for connected
+		else if (key == 'connected') {
 			opts.edittype = 'checkbox';
 			opts.editoptions = {
 				value : "true:false"
 			};
-		} else if (key == 'geom') {
+		} 
+		
+		// custom editor/formatter for geometry
+		else if (key == 'geom') {
 			opts.hidden = true;
 		}
 
@@ -169,9 +157,8 @@ function setupTable() {
 
 	var w = $(window).width();
 
-	console.log("colNames:", colNames);
-	console.log("colModel:", colModel);
 
+	// create the table with the model created above
 	tableOptions = {
 		grouping : true,
 		groupingView : {
@@ -189,18 +176,16 @@ function setupTable() {
 		rowList : [ 10, 20, 30 ],
 		scroll : true,
 		scrollrows : true,
-		
+
+		// called when a row in the organization table is selected
 		onSelectRow : function(id, status, event) {
 			// check if edit bailed
 			if (id && id !== lastsel) {
-				if(lastsel) {
-					console.log("lastsel:",lastsel);
-					console.log("id:",id);
-				$.confirm("Do you want to save changes to "+indexedPlaces[lastsel].name+"?",
-						{
+				if (lastsel) {
+					$.confirm("Do you want to save changes to " + indexedPlaces[lastsel].name + "?", {
 						buttons : {
 							"Yes" : function() {
-								console.log("calls saveRow",id);
+								console.log("calls saveRow", id);
 								$("#placeTable").jqGrid('saveRow', lastsel, {
 									url : 'clientArray',
 									keys : true,
@@ -209,7 +194,7 @@ function setupTable() {
 									}
 								});
 								$(this).dialog("close");
-		
+
 							},
 							"No" : function() {
 								$("#placeTable").jqGrid('restoreRow', lastsel);
@@ -217,7 +202,7 @@ function setupTable() {
 								$(this).dialog("close");
 							}
 						}
-						});
+					});
 				}
 			}
 
@@ -233,36 +218,22 @@ function setupTable() {
 		},
 		ondblClickRow : function(id, ri, ci, e) {
 			// edit on double click
-
 			lastsel = id;
-			// $("#placeTable").jqGrid('editRow', id, true, 'clientArray');
 			editRow(id);
-
 		}
 
 	};
 
 	var table = $("#placeTable").jqGrid(tableOptions);
-	
-//	.navGrid("#pagernav", {
-//		edit : false,
-//		add : false,
-//		del : false
-//	});
 
 	// set data reference directly on table so that we are linked for updates
 	table[0].p.data = places;
 	table.trigger('reloadGrid');
 
-	//handle right click on rows
+	// handle right click on rows
 	$.contextMenu({
 		selector : ".ui-jqgrid tr",
 		build : function($trigger, e) {
-			console.log(e);
-
-			console.log('^^^^^^^^^^^^^^^^^^^^^^^^^ target:', $(e.target));
-
-			var id = $trigger.attr('id');
 
 			var items = {
 				'edit' : {
@@ -283,8 +254,8 @@ function setupTable() {
 					if (key == "edit")
 						editRow(sel);
 					else if (key == "geocode") {
-						
-						//Geocode with google maps api
+
+						// Geocode with google maps api
 						var geocoder = new google.maps.Geocoder();
 						geocoder.geocode({
 							address : address
@@ -329,7 +300,6 @@ function getFirstProperty(obj) {
 function importKML(file) {
 
 	var data = new FormData();
-
 	data.append("kmlFile", file);
 
 	$.ajax({
@@ -387,28 +357,23 @@ function deleteRow(id) {
 function editRow(id) {
 
 	console.log("in editRow...");
-	$("#placeTable")
-			.jqGrid(
-					'editRow',
-					id,
-					{
-						url : 'clientArray',
-						keys : true,
-						aftersavefunc : function() {
-							saveOrg(id);
-						},
-						afterrestorefunc: function() {
-							
-							lastsel = undefined;
-						}
-					});
+	$("#placeTable").jqGrid('editRow', id, {
+		url : 'clientArray',
+		keys : true,
+		aftersavefunc : function() {
+			saveOrg(id);
+		},
+		afterrestorefunc : function() {
+			lastsel = undefined;
+		}
+	});
 }
 
 function saveOrg(id) {
 	lastsel = undefined;
-	
+
 	var record = $.extend({}, indexedPlaces[id]);
-	
+
 	// update back to objects
 	var pos = indexedPlaces[id].marker.getPosition();
 	record.geom = {
@@ -418,7 +383,7 @@ function saveOrg(id) {
 	record.organizationType = orgTypesByType[indexedPlaces[id].organizationType];
 
 	mergeOrganization(record);
-	map.updatePlace(indexedPlaces[id]);
+	map.updatePlace(record);
 }
 
 function addRow() {
@@ -431,8 +396,7 @@ function addRow() {
 		},
 		organizationType : organizationTypes[0]
 	}, function(place) {
-		var table = $("#placeTable").jqGrid('addRowData', place.uuid, place,
-				"first");
+		$("#placeTable").jqGrid('addRowData', place.uuid, place,"first");
 
 		// keep index up to date, note jqgrid does an extend, so we need to get
 		// the reference from our linked array.
@@ -462,9 +426,7 @@ function createLink(from, to, open) {
 
 	saveNetworkConnection(networkConnection, function(link) {
 		links.push(link);
-		var line = map.drawLink(link, f, t, indexedLinkTypes[0], true);
-		// if (open) google.maps.event.trigger(line, 'click');
-
+		map.drawLink(link, f, t, indexedLinkTypes[0], true);
 	});
 }
 
@@ -480,4 +442,4 @@ function handleSelectPlace(id) {
 	$("#placeTable").jqGrid('setSelection', id);
 }
 
-//@ sourceURL=netmapEdit.js
+// @ sourceURL=netmapEdit.js
