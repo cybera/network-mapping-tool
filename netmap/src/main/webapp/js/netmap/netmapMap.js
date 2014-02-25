@@ -521,14 +521,15 @@ Map.prototype.getLatLng = function(coordinates) {
 };
 
 Map.prototype.click = function(uuid, lat, lng) {
-
-	$.each(this.lines, function(index, line) {
-		if (line.get('uuid') == uuid) {
-			google.maps.event.trigger(line, "click", {
-				'latLng' : new google.maps.LatLng(lat, lng)
-			});
-		}
-	});
+	if(lat) {
+		$.each(this.lines, function(index, line) {
+			if (line.get('uuid') == uuid) {
+				google.maps.event.trigger(line, "click", {
+					'latLng' : new google.maps.LatLng(lat, lng)
+				});
+			}
+		});
+	}
 
 	$.each(this.markers, function(index, marker) {
 		if (marker.placename == uuid) {

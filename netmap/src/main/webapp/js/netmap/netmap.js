@@ -238,6 +238,7 @@ $(document).ready(function() {
 	 		source: $.map(places, function(val, key) { return {label: val.name, id: val.uuid}; }),
 	 		select: function(event, ui) {
 	 			map.zoomTo(indexedPlaces[ui.item.id].marker);
+	 			map.click(ui.item.id);
 	 		}
 		});
 
