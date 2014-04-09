@@ -13,14 +13,11 @@ var currentView = {};
 var networkVisibility = {};
 var dragAllowed = false;
 
-
 $(document).ready(function() {
-	
 	$.ajaxSetup ({
 	    // Disable caching of AJAX responses
 	    cache: false
 	});
-	
 	
 	//handle Views & Sharing
 	var currentViewParam = decodeURIComponent($.urlParam('currentView'));
@@ -52,14 +49,12 @@ $(document).ready(function() {
 		}).dialog('open');
 	});
 	
-	
 	//Legend Setup
 	$("#maxLegend").click(function() {
-		var mc =$("#mapController"); 
+		var mc =$("#mapController");
 		var w = $(window).width();
 		var h = $(window).height();
 
-		
 		if($("#maxLegend").attr("src") == "images/maximize.png") {
 			mc.css("top", 0);
 			mc.height(h-20);
@@ -67,12 +62,11 @@ $(document).ready(function() {
 			mc.height(1000);
 			$("#maxLegend").attr("src", "images/minimize.png");
 			
-			$(".legendImage").height(100);
-			$(".legendIcon").height(80).width(80);
+			$(".legendImage").addClass("legendImage-max");
+			$(".legendIcon").addClass("legendIcon-max");
 			$(".legendItemLabel").css("font-size", "25px");
 			$(".legendTitle").css("font-size", "30px");
 			$("#searchText").width("250").height(50).css("font-size", "25px");
-			
 		}
 		else {
 			setLegendPreferredSize();
@@ -431,14 +425,12 @@ function setLegendPreferredSize() {
 	$("#mapController").css("top", 18).css("left", 83).height(500).width(200);
 	
 	$("#maxLegend").attr("src", "images/maximize.png");
-	$(".legendImage").height(40);
-	$(".legendIcon").height(30).width(30);
+	$(".legendImage").removeClass("legendImage-max");
+	$(".legendIcon").removeClass("legendIcon-max");
 	$(".legendItemLabel").css("font-size", "14px");
 	$(".legendTitle").css("font-size", "15px");
 	$("#searchText").width("150").height(25).css("font-size", "15px");
-
 }
-
 
 function createCurrentView() {
 	
