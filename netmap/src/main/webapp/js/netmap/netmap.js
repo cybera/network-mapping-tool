@@ -64,9 +64,9 @@ $(document).ready(function() {
 
       $(".legendImage").addClass("legendImage-max");
       $(".legendIcon").addClass("legendIcon-max");
-      $(".legendItemLabel").css("font-size", "25px");
-      $(".legendTitle").css("font-size", "30px");
-      $("#searchText").width("250").height(50).css("font-size", "25px");
+      $(".legendItemLabel").addClass("legendItemLabel-max");
+      $(".legendTitle").addClass("legendTitle-max");
+      $("#searchText").addClass("searchText-max");
     }
     else {
       setLegendPreferredSize();
@@ -418,9 +418,9 @@ function setLegendPreferredSize() {
   $("#maxLegend").attr("src", "images/maximize.png");
   $(".legendImage").removeClass("legendImage-max");
   $(".legendIcon").removeClass("legendIcon-max");
-  $(".legendItemLabel").css("font-size", "14px");
-  $(".legendTitle").css("font-size", "15px");
-  $("#searchText").width("150").height(25).css("font-size", "15px");
+  $(".legendItemLabel").remeoveClass("legendItemLabel-max");
+  $(".legendTitle").removeClass("legendTitle-max");
+  $("#searchText").removeClass("searchText-max");
 }
 
 function createCurrentView() {
