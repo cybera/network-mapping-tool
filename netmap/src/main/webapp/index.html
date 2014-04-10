@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
-<!-- 		<script type="text/javascript" src="js/jquery.csv-0.71.js"></script> -->
+<!--     <script type="text/javascript" src="js/jquery.csv-0.71.js"></script> -->
 
 <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyDrCXoSYA0GKWtl6I8K2QZDAhe9ryNnQkE&sensor=false&libraries=geometry"></script>
 <script type="text/javascript" src="js/oms.min.js"></script>
@@ -44,32 +44,39 @@
 </head>
 
 <body>
-	<div id="map_canvas" style="width: 100%; height: 100px;"></div>
-	<div id="edit_canvas"></div>
-	<div style="position: absolute; top: 4px; right: 101px;">
-		<select style="width: 100px;" id="mapStyleSelect"></select> <img src="images/share.png" id="share" width="20px" style="cursor: pointer;" />
-	</div>
-	<div style="position: absolute; top: 7px; right: 228px; width: 50px; border: 1px solid grey; background-color: white; font-size: 12px; text-align: center; height: 16px; display: none;" id="layersButton">Legend</div>
+  <div id="map_canvas" style="width: 100%; height: 100px;"></div>
+  <div id="edit_canvas"></div>
+  <div style="position: absolute; top: 4px; right: 101px;">
+    <select style="width: 100px;" id="mapStyleSelect"></select> <img src="images/share.png" id="share" width="20px" style="cursor: pointer;" alt="Share map" />
+  </div>
+  <div style="position: absolute; top: 7px; right: 228px; width: 50px; border: 1px solid grey; background-color: white; font-size: 12px; text-align: center; height: 16px; display: none;" id="layersButton">Legend</div>
 
 
-	<div id="mapController" class="mapController" style="display: none;">
-		<img src="images/maximize.png" style="position: absolute; top: 2%; right: 5%" id="maxLegend" /> <img src="images/close.png" id="minLegend" class="minimize" />
-		<div style="margin-top: 30px;">
-			<input style="margin-left: 10px; margin-top: 15px; width: 150px; height: 25px; font-size: 15px; z-index: 1000;" id="searchText" placeholder="Search Location"></input>
-		</div>
+  <div id="mapController" class="mapController" style="display: none;">
+    <div>
+      <div style="float:right">
+        <img src="images/maximize.png" id="maxLegend" class="maximize" alt="Maximize legend" />
+      </div>
+      <div style="float:left">
+        <img src="images/close.png" id="minLegend" class="minimize" alt="Minimize legend" />
+      </div>
+    </div>
+    <div style="margin-top: 30px;">
+      <input id="searchText" class="searchText" placeholder="Search Location">
+    </div>
 
-		<div style="height: 90%; overflow: auto;">
-			<div style="float: left; margin-top: 20px; margin-left: 20px;">
-				<div class="legendTitle">ORGANIZATION TYPES</div>
-				<div style="margin-left: 5px;" id="mapOrgTypes"></div>
-			</div>
+    <div style="height: 90%; overflow: auto;">
+      <div style="float: left; margin-top: 20px; margin-left: 20px;">
+        <div class="legendTitle">ORGANIZATION TYPES</div>
+        <div style="margin-left: 5px;" id="mapOrgTypes"></div>
+      </div>
 
-			<div style="float: left; margin-top: 20px; margin-left: 20px;">
-				<div style="" class="legendTitle">NETWORKS</div>
-				<div style="margin-left: 5x;" id="mapNetworks"></div>
-			</div>
-		</div>
-	</div>
+      <div style="float: left; margin-top: 20px; margin-left: 20px;">
+        <div style="" class="legendTitle">NETWORKS</div>
+        <div style="margin-left: 5x;" id="mapNetworks"></div>
+      </div>
+    </div>
+  </div>
 
 
 </body>
