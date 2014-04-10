@@ -418,7 +418,7 @@ function setLegendPreferredSize() {
   $("#maxLegend").attr("src", "images/maximize.png");
   $(".legendImage").removeClass("legendImage-max");
   $(".legendIcon").removeClass("legendIcon-max");
-  $(".legendItemLabel").remeoveClass("legendItemLabel-max");
+  $(".legendItemLabel").removeClass("legendItemLabel-max");
   $(".legendTitle").removeClass("legendTitle-max");
   $("#searchText").removeClass("searchText-max");
 }
