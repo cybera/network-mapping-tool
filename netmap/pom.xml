@@ -16,6 +16,10 @@
 	</properties>
 
 	<repositories>
+	<repository>
+          <id>Maven Central Repo</id>
+          <url>https://repo1.maven.org/maven2</url>
+        </repository>
 		<repository>
 			<id>Hibernate Spatial repo</id>
 			<url>http://www.hibernatespatial.org/repository</url>
